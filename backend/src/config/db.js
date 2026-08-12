@@ -1,16 +1,16 @@
 const mongoose = require('mongoose');
+const dotenv = require('dotenv');
 
-const connectDB = async () => {
+dotenv.config();
+
+async function connectDatabase() {
   try {
-    // Liga-se ao MongoDB usando a URI definida no ficheiro .env
-    const conn = await mongoose.connect(process.env.MONGO_URI);
-
-    console.log(`MongoDB Conectado com sucesso: ${conn.connection.host}`);
+    await mongoose.connect(process.env.MONGO_URI);
+    console.log("✅ Banco de dados conectado com sucesso!");
   } catch (error) {
-    console.error(`Erro ao conectar ao MongoDB: ${error.message}`);
-    // Encerra o processo da aplicação em caso de falha na conexão
+    console.error("❌ Erro ao conectar ao banco:", error);
     process.exit(1);
   }
-};
+}
 
-module.exports = connectDB;
+module.exports = connectDatabase;

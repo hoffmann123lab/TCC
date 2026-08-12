@@ -1,296 +1,519 @@
 /* ==========================================
-   🎨 VARIÁVEIS DE CORES E ESTILOS GLOBAIS
+   1. ESTILOS DA NAVBAR
    ========================================== */
-:root {
-  --primary-color: #4f46e5;
-  --primary-hover: #4338ca;
-  --bg-color: #f8fafc;
-  --card-bg: #ffffff;
-  --text-color: #1e293b;
-  --text-muted: #64748b;
-  --border-color: #e2e8f0;
-  --danger-color: #ef4444;
-  --danger-hover: #dc2626;
-  --radius: 8px;
-  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-}
-
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-}
-
-body {
-  background-color: var(--bg-color);
-  color: var(--text-color);
-  line-height: 1.5;
-}
-
-/* ==========================================
-   🧭 NAVBAR
+   .navbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background-color: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid #e2e8f0;
+    padding: 0 1.5rem;
+    width: 100%;
+  }
+  
+  .navbar-container {
+    max-width: 1200px;
+    height: 64px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  /* Logo */
+  .navbar-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 1.2rem;
+    color: #0f172a;
+  }
+  
+  .logo-icon {
+    background: #eef2ff;
+    padding: 0.4rem;
+    border-radius: 8px;
+    font-size: 1rem;
+  }
+  
+  /* Links */
+  .navbar-links {
+    display: flex;
+    gap: 1.5rem;
+  }
+  
+  .nav-item {
+    text-decoration: none;
+    color: #64748b;
+    font-weight: 500;
+    font-size: 0.95rem;
+    transition: color 0.2s;
+  }
+  
+  .nav-item:hover, 
+  .nav-item.active {
+    color: #4f46e5;
+  }
+  
+  /* Ações e Avatar */
+  .navbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  
+  .btn-new-sheet {
+    background-color: #4f46e5;
+    color: #ffffff;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.875rem;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .btn-new-sheet:hover {
+    background-color: #4338ca;
+  }
+  
+  .user-profile {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding-left: 0.8rem;
+    border-left: 1px solid #e2e8f0;
+  }
+  
+  .avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6366f1, #a855f7);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.85rem;
+  }
+  
+  .user-name {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #334155;
+  }
+  
+  /* ==========================================
+     2. LAYOUT GLOBAL DA PÁGINA (DASHBOARD)
+     ========================================== */
+  .app-container {
+    max-width: 1100px;
+    margin: 2.5rem auto;
+    padding: 0 1.5rem;
+  }
+  
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+  }
+  
+  .page-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #0f172a;
+  }
+  
+  .page-subtitle {
+    color: #64748b;
+    font-size: 0.95rem;
+    margin-top: 0.25rem;
+  }
+  
+  /* Grid de Cards */
+  .grid-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+  }
+  
+  /* Estilo do Card Individual */
+  .card {
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    padding: 1.25rem;
+    text-decoration: none;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  
+  .card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.08);
+    border-color: #818cf8;
+  }
+  
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+  
+  .card-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 8px;
+    background-color: #eef2ff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+  }
+  
+  .card-title {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #1e293b;
+  }
+  
+  .card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.8rem;
+    color: #94a3b8;
+    border-top: 1px solid #f1f5f9;
+    padding-top: 0.8rem;
+    margin-top: 1.2rem;
+  }
+  
+  /* Card de Criar Nova Planilha */
+  .card-create-new {
+    border: 2px dashed #cbd5e1;
+    background-color: #f8fafc;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-height: 160px;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+  }
+  
+  .card-create-new:hover {
+    border-color: #4f46e5;
+    background-color: #eef2ff;
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px -5px rgba(79, 70, 229, 0.1);
+  }
+  
+  .create-icon-wrapper {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease;
+  }
+  
+  .card-create-new:hover .create-icon-wrapper {
+    background-color: #4f46e5;
+    border-color: #4f46e5;
+  }
+  
+  .create-icon {
+    font-size: 1.6rem;
+    font-weight: 600;
+    color: #4f46e5;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: -2px; /* Alinha perfeitamente no centro vertical */
+  }
+  
+  .card-create-new:hover .create-icon {
+    color: #ffffff;
+  }
+  
+  .card-subtitle-text {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    margin-top: 0.2rem;
+  }
+  
+  /* ==========================================
+     3. BOTÕES GENÉRICOS (CLASSES .btn)
+     ========================================== */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.2rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    border-radius: 8px;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s ease;
+  }
+  
+  .btn-primary {
+    background-color: #4f46e5;
+    color: #ffffff;
+    box-shadow: 0 2px 4px rgba(79, 70, 229, 0.2);
+  }
+  
+  .btn-primary:hover {
+    background-color: #4338ca;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(79, 70, 229, 0.3);
+  }
+  
+  /* ==========================================
+     4. ESTILOS DA PÁGINA DE PLANILHA (SHEETVIEW)
+     ========================================== */
+  .sheet-container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 1.5rem;
+  }
+  
+  /* Cabeçalho da Planilha */
+  .sheet-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+  
+  .sheet-title-area {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  
+  .btn-back {
+    text-decoration: none;
+    color: #64748b;
+    font-weight: 600;
+    font-size: 0.9rem;
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    background-color: #f1f5f9;
+    transition: all 0.2s;
+  }
+  
+  .btn-back:hover {
+    background-color: #e2e8f0;
+    color: #0f172a;
+  }
+  
+  .sheet-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #0f172a;
+  }
+  
+  .sheet-actions {
+    display: flex;
+    gap: 0.75rem;
+  }
+  
+  /* Container da Tabela */
+  .sheet-table-wrapper {
+    background: #ffffff;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    overflow-x: auto;
+  }
+  
+  .sheet-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+  }
+  
+  .sheet-table th {
+    background-color: #f8fafc;
+    padding: 0.75rem 1rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid #e2e8f0;
+    border-right: 1px solid #e2e8f0;
+  }
+  
+  .sheet-table td {
+    padding: 0;
+    border-bottom: 1px solid #e2e8f0;
+    border-right: 1px solid #e2e8f0;
+  }
+  
+  /* Célula Numérica da Esquerda */
+  .row-number {
+    width: 48px;
+    text-align: center;
+    color: #94a3b8;
+    font-size: 0.8rem;
+    font-weight: 600;
+    background-color: #f8fafc;
+  }
+  
+  /* Campo Digitável da Tabela */
+  .cell-input {
+    width: 100%;
+    border: none;
+    border-radius: 0;
+    padding: 0.75rem 1rem;
+    background: transparent;
+    font-size: 0.9rem;
+    color: #1e293b;
+    outline: none;
+  }
+  
+  /* Destaque ao clicar/editar a célula */
+  .cell-input:focus {
+    background-color: #ffffff;
+    box-shadow: inset 0 0 0 2px #4f46e5;
+  }
+  
+  /* ==========================================
+     5. ESTILOS DA PÁGINA DE MODELOS (TEMPLATES)
+     ========================================== */
+  .template-tag {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  
+  .template-description {
+    font-size: 0.875rem;
+    color: #64748b;
+    margin: 0.8rem 0;
+    line-height: 1.4;
+  }
+  
+  .template-preview-cols {
+    background-color: #f8fafc;
+    padding: 0.8rem;
+    border-radius: 8px;
+    border: 1px dashed #cbd5e1;
+  }
+  
+  .template-preview-cols strong {
+    display: block;
+    font-size: 0.7rem;
+    color: #94a3b8;
+    text-transform: uppercase;
+    margin-bottom: 0.4rem;
+  }
+  
+  .template-preview-cols p {
+    font-size: 0.75rem;
+    color: #475569;
+    margin: 0;
+    font-style: italic;
+  }
+  
+  .card-content-top {
+    flex-grow: 1;
+  }
+  /* ==========================================
+   ESTILOS DO MODAL / POPUP
    ========================================== */
-.navbar {
-  background-color: var(--card-bg);
-  border-bottom: 1px solid var(--border-color);
-  padding: 1rem 2rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-.navbar-container {
-  max-width: 1200px;
-  margin: 0 auto;
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(4px);
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: center;
+  z-index: 1000;
 }
 
-.navbar-logo {
+.modal-content {
+  background: #ffffff;
+  padding: 2rem;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 440px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.modal-content h2 {
   font-size: 1.25rem;
   font-weight: 700;
-  color: var(--primary-color);
-  text-decoration: none;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  color: #0f172a;
+  margin-bottom: 0.25rem;
 }
 
-.navbar-links a {
-  color: var(--text-muted);
-  text-decoration: none;
-  margin-left: 1.5rem;
-  font-weight: 500;
-  transition: color 0.2s;
-}
-
-.navbar-links a:hover {
-  color: var(--primary-color);
-}
-
-/* ==========================================
-   📊 DASHBOARD & LAYOUTS
-   ========================================== */
-.dashboard-container,
-.sheet-view-container,
-.login-container {
-  max-width: 1200px;
-  margin: 2rem auto;
-  padding: 0 1.5rem;
-}
-
-.dashboard-container h1 {
-  margin-bottom: 1.5rem;
-  font-size: 1.875rem;
-}
-
-.create-sheet-card {
-  background-color: var(--card-bg);
-  padding: 1.5rem;
-  border-radius: var(--radius);
-  border: 1px solid var(--border-color);
-  box-shadow: var(--shadow);
-  margin-bottom: 2rem;
-}
-
-.create-sheet-card h3 {
-  margin-bottom: 1rem;
-}
-
-.create-sheet-card form {
-  display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.create-sheet-card input {
-  flex: 1;
-  min-width: 200px;
-}
-
-.sheets-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1.5rem;
-}
-
-.sheet-card {
-  background-color: var(--card-bg);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius);
-  padding: 1.5rem;
-  box-shadow: var(--shadow);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.sheet-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-}
-
-.sheet-card h3 {
-  color: var(--primary-color);
-  margin-bottom: 0.5rem;
-}
-
-.sheet-card p {
-  color: var(--text-muted);
+.modal-content p {
   font-size: 0.875rem;
+  color: #64748b;
+  margin-bottom: 1.25rem;
+}
+
+.modal-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
   margin-bottom: 1.5rem;
 }
 
-/* ==========================================
-   🔤 BOTÕES E INPUTS
-   ========================================== */
-.btn {
-  padding: 0.6rem 1.2rem;
-  border-radius: var(--radius);
-  font-weight: 600;
-  cursor: pointer;
-  border: none;
-  transition: background-color 0.2s;
+.modal-input:focus {
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
 }
 
-.btn-primary {
-  background-color: var(--primary-color);
-  color: white;
-}
-
-.btn-primary:hover {
-  background-color: var(--primary-hover);
-}
-
-.btn-danger-sm {
-  background-color: transparent;
-  color: var(--danger-color);
-  border: 1px solid var(--danger-color);
-  padding: 0.3rem 0.6rem;
-  border-radius: var(--radius);
-  cursor: pointer;
-  font-size: 0.8rem;
-}
-
-.btn-danger-sm:hover {
-  background-color: var(--danger-color);
-  color: white;
-}
-
-.btn-back {
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  font-weight: 600;
-  cursor: pointer;
-  margin-bottom: 1rem;
-}
-
-.btn-back:hover {
-  color: var(--primary-color);
-}
-
-input[type="text"],
-input[type="email"],
-input[type="password"] {
-  padding: 0.6rem 0.8rem;
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius);
-  outline: none;
-  font-size: 0.95rem;
-}
-
-input:focus {
-  border-color: var(--primary-color);
-}
-
-/* ==========================================
-   📋 TABELA DINÂMICA (SheetView)
-   ========================================== */
-.table-container {
-  overflow-x: auto;
-  background-color: var(--card-bg);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  margin-top: 1.5rem;
-}
-
-.custom-table {
-  width: 100%;
-  border-collapse: collapse;
-  text-align: left;
-}
-
-.custom-table th,
-.custom-table td {
-  padding: 0.75rem 1rem;
-  border-bottom: 1px solid var(--border-color);
-  border-right: 1px solid var(--border-color);
-}
-
-.custom-table th {
-  background-color: #f1f5f9;
-  font-weight: 600;
-  color: var(--text-color);
-}
-
-.custom-table td input {
-  width: 100%;
-  border: none;
-  background: transparent;
-  padding: 0.2rem;
-}
-
-.custom-table td input:focus {
-  background-color: #e0e7ff;
-  border-radius: 4px;
-}
-
-.sheet-actions {
+.modal-actions {
   display: flex;
   justify-content: flex-end;
-  margin-bottom: 1rem;
+  gap: 0.75rem;
 }
 
-/* ==========================================
-   🔑 LOGIN
-   ========================================== */
-.login-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 70vh;
+.btn-secondary {
+  background-color: #f1f5f9;
+  color: #475569;
 }
 
-.login-card {
-  background-color: var(--card-bg);
-  padding: 2.5rem;
-  border-radius: var(--radius);
-  border: 1px solid var(--border-color);
-  box-shadow: var(--shadow);
-  width: 100%;
-  max-width: 400px;
+.btn-secondary:hover {
+  background-color: #e2e8f0;
+  color: #0f172a;
+}
+.btn-finish {
+  background-color: #10b981; /* Verde */
+  color: #ffffff;
 }
 
-.login-card h2 {
-  margin-bottom: 1.5rem;
-  text-align: center;
-}
-
-.login-card .input-group {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 1.2rem;
-}
-
-.login-card label {
-  font-size: 0.875rem;
-  margin-bottom: 0.4rem;
-  color: var(--text-muted);
-}
-
-.login-card .btn {
-  width: 100%;
+.btn-finish:hover {
+  background-color: #059669;
 }
