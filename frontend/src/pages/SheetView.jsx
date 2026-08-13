@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useParams, Link, useLocation } from 'react-router-dom';
 import * as XLSX from 'xlsx';
 import '../App.css';
@@ -234,7 +234,7 @@ export default function SheetView() {
   const { id } = useParams();
   const location = useLocation();
 
-  const isTemplate = TEMPLATE_DATA.hasOwnProperty(id);
+  const isTemplate = id in TEMPLATE_DATA;
   const activeTemplate = isTemplate ? TEMPLATE_DATA[id] : null;
 
   const sheetTitle = location.state?.title || (activeTemplate ? activeTemplate.title : 'Nova Planilha');
@@ -245,17 +245,6 @@ export default function SheetView() {
   const [columns, setColumns] = useState(initialColumns);
   const [rows, setRows] = useState(initialRows);
 
-  useEffect(() => {
-    if (activeTemplate) {
-      setColumns(activeTemplate.columns);
-      setRows(activeTemplate.rows);
-    } else {
-      setColumns(DEFAULT_BLANK_COLUMNS);
-      setRows(DEFAULT_BLANK_ROWS);
-    }
-  }, [id, activeTemplate]);
-
-  // Adicionar Linha
   const handleAddRow = () => {
     if (columns.length === 0) {
       alert('Crie pelo menos uma coluna antes de adicionar linhas!');
@@ -340,10 +329,10 @@ export default function SheetView() {
           rows: linhasPadronizadas,
         }),
       });
-    } catch (error) {
-      console.log('Arquivo baixado no PC, mas o servidor backend não respondeu.');
-    }
-
+  } catch (error) {
+    console.log('Arquivo baixado no PC, mas o servidor backend não respondeu.');
+    console.error(error); // 👈 Usando a variável aqui, o sublinhado some!
+  }
     alert(`🎉 Tabela finalizada com sucesso! Todos os dados foram padronizados e salvos em Downloads como "${fileName}".`);
   };
 
