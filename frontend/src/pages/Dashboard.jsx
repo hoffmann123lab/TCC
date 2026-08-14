@@ -1,89 +1,114 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import '../App.css';
 
 export default function Dashboard() {
-  const navigate = useNavigate();
+  const [sheetsCount, setSheetsCount] = useState(0);
+  const [templatesCount] = useState(8); // Fixed 8 models
+  const [downloadsCount, setDownloadsCount] = useState(0);
+  const [recentSheets, setRecentSheets] = useState([]);
 
-  // Estados para controlar o Modal de criação de planilha
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newSheetTitle, setNewSheetTitle] = useState('');
+  useEffect(() => {
+    const savedSheets = JSON.parse(localStorage.getItem('my_sheets') || '[]');
+    setSheetsCount(savedSheets.length);
 
-  // Submissão do formulário do Modal
-  const handleCreateSheetSubmit = (e) => {
-    e.preventDefault();
+    const savedDownloads = parseInt(localStorage.getItem('sheet_downloads_count') || '0', 10);
+    setDownloadsCount(savedDownloads);
 
-    if (!newSheetTitle.trim()) return;
+    setRecentSheets(savedSheets.slice(-3).reverse());
+  }, []);
 
-    // Gera um ID único para a nova planilha
-    const newSheetId = `sheet-${Date.now()}`;
-
-    // Limpa e fecha o modal
-    setIsModalOpen(false);
-    setNewSheetTitle('');
-
-    // Redireciona para a tela de edição passando o título escolhido
-    navigate(`/sheet/${newSheetId}`, {
-      state: { title: newSheetTitle }
-    });
-  };
+  const stats = [
+    { label: 'Planilhas Criadas', value: sheetsCount, icon: '📁' },
+    { label: 'Modelos Disponíveis', value: templatesCount, icon: '✨' },
+    { label: 'Downloads Feitos', value: downloadsCount, icon: '📥' },
+  ];
 
   return (
-    <div className="app-container">
-      {/* Cabeçalho da Dashboard */}
-      <div className="page-header">
+    <div className="container" style={{ padding: '2rem 1rem', maxWidth: '1200px', margin: '0 auto' }}>
+      
+      {/* Banner de Boas-Vindas */}
+      <div style={{
+        backgroundColor: '#1e293b',
+        color: '#ffffff',
+        padding: '2rem',
+        borderRadius: '12px',
+        marginBottom: '2rem',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: '1rem'
+      }}>
         <div>
-          <h1 className="page-title">Minhas Planilhas</h1>
-          <p className="page-subtitle">Gerencie suas planilhas e organize seus dados em um só lugar.</p>
+          <h1 style={{ margin: 0, fontSize: '1.8rem' }}>Bem-vindo ao SheetHub! 👋</h1>
+          <p style={{ margin: '0.5rem 0 0', color: '#94a3b8' }}>
+            Crie, padronize e exporte suas planilhas com facilidade.
+          </p>
         </div>
+        <Link to="/sheet/new" className="btn btn-primary" style={{ padding: '0.75rem 1.5rem', fontWeight: 'bold' }}>
+          + Criar Nova Planilha
+        </Link>
       </div>
 
-      {/* Grid de Cards */}
-      <div className="grid-cards">
-        {/* Card: Criar Nova Planilha */}
-        <div className="card card-create-new" onClick={() => setIsModalOpen(true)}>
-          <div className="create-icon-wrapper">
-            <span className="create-icon">+</span>
+      {/* Cards de Estatísticas */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+        gap: '1.5rem',
+        marginBottom: '2.5rem'
+      }}>
+        {stats.map((stat, index) => (
+          <div key={index} style={{
+            backgroundColor: '#ffffff',
+            padding: '1.5rem',
+            borderRadius: '10px',
+            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '1rem'
+          }}>
+            <div style={{ fontSize: '2rem', backgroundColor: '#f1f5f9', padding: '0.8rem', borderRadius: '8px' }}>
+              {stat.icon}
+            </div>
+            <div>
+              <span style={{ fontSize: '0.875rem', color: '#64748b', fontWeight: '500' }}>{stat.label}</span>
+              <h2 style={{ margin: 0, fontSize: '1.8rem', color: '#0f172a', fontWeight: '700' }}>{stat.value}</h2>
+            </div>
           </div>
-          <h3 className="card-title" style={{ marginTop: '0.8rem' }}>Criar Nova Planilha</h3>
-          <p className="card-subtitle-text">Comece uma tabela do zero</p>
-        </div>
+        ))}
       </div>
 
-      {/* MODAL / POPUP DE CRIAÇÃO */}
-      {isModalOpen && (
-        <div className="modal-overlay" onClick={() => setIsModalOpen(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h2>Nova Planilha</h2>
-            <p>Digite o nome para a sua nova planilha:</p>
-
-            <form onSubmit={handleCreateSheetSubmit}>
-              <input
-                type="text"
-                className="modal-input"
-                placeholder="Ex: Minhas Finanças 2026..."
-                value={newSheetTitle}
-                onChange={(e) => setNewSheetTitle(e.target.value)}
-                autoFocus
-                required
-              />
-
-              <div className="modal-actions">
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={() => setIsModalOpen(false)}
-                >
-                  Cancelar
-                </button>
-                <button type="submit" className="btn btn-primary">
-                  Criar Planilha
-                </button>
-              </div>
-            </form>
+      {/* Recentes e Atalhos */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
+        <div style={{ backgroundColor: '#ffffff', padding: '1.5rem', borderRadius: '10px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <h3 style={{ margin: 0, color: '#0f172a' }}>📄 Planilhas Recentes</h3>
+            <Link to="/sheets" style={{ color: '#2563eb', textDecoration: 'none', fontSize: '0.875rem', fontWeight: '600' }}>Ver todas →</Link>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            {recentSheets.length === 0 ? (
+              <p style={{ color: '#94a3b8', fontSize: '0.9rem', margin: 0 }}>Nenhuma planilha criada ainda.</p>
+            ) : (
+              recentSheets.map((sheet, idx) => (
+                <Link key={idx} to={`/sheet/${sheet.id || idx}`} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem 1rem', backgroundColor: '#f8fafc', borderRadius: '6px', textDecoration: 'none', color: '#334155' }}>
+                  <span style={{ fontWeight: '500' }}>{sheet.title || 'Sem título'}</span>
+                </Link>
+              ))
+            )}
           </div>
         </div>
-      )}
+
+        <div style={{ backgroundColor: '#ffffff', padding: '1.5rem', borderRadius: '10px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
+          <h3 style={{ margin: '0 0 1rem', color: '#0f172a' }}>✨ Atalhos Rápidos</h3>
+          <p style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: '1.5rem' }}>Acesse os modelos prontos:</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <Link to="/templates" className="btn btn-secondary" style={{ textAlign: 'center' }}>
+              📊 Ver Todos os Modelos ({templatesCount})
+            </Link>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
