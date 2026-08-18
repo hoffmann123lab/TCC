@@ -1,10 +1,10 @@
-const mongoose = require('mongoose');
-require('dotenv').config();
+import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+
+dotenv.config();
 
 async function connectDatabase() {
   try {
-    // Usa o MONGO_URI do .env OU a URL padrão do MongoDB local
     const mongoURI = process.env.MONGO_URI || 'mongodb://localhost:27017/sheethub';
 
     await mongoose.connect(mongoURI);
@@ -15,4 +15,4 @@ async function connectDatabase() {
   }
 }
 
-module.exports = connectDatabase;
+export default connectDatabase;

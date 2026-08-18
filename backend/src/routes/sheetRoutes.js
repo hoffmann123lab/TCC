@@ -1,11 +1,11 @@
-const express = require('express');
-const router = express.Router();
-const sheetController = require('../controllers/sheetController');
+import express from 'express';
+import sheetController from '../controllers/sheetController.js';
 
-// Rotas para Gerenciamento de Planilhas
+const router = express.Router();
+
 router.get('/', sheetController.getSheets);
 router.post('/', sheetController.createSheet);
 router.put('/:id', sheetController.updateSheet);
 router.delete('/:id', sheetController.deleteSheet);
 
-module.exports = router;
+export default router;

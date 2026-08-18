@@ -1,6 +1,7 @@
-const express = require('express');
+import express from 'express';
+import rowController from '../controllers/rowController.js';
+
 const router = express.Router();
-const rowController = require('../controllers/rowController');
 
 // Rotas para Gerenciamento de Linhas / Dados
 router.get('/sheet/:sheetId', rowController.getRowsBySheet);
@@ -8,4 +9,4 @@ router.post('/', rowController.createRow);
 router.put('/:id', rowController.updateRow);
 router.delete('/:id', rowController.deleteRow);
 
-module.exports = router;
+export default router;

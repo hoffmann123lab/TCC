@@ -7,14 +7,13 @@ export default function ManageSheets() {
   const [selectedFolder, setSelectedFolder] = useState(null);
   const [selectedSheet, setSelectedSheet] = useState(null);
 
-  // 🟢 Busca as pastas REAIS do banco de dados ao carregar a página
   useEffect(() => {
     async function fetchFolders() {
       try {
         const response = await fetch('http://localhost:5000/api/admin/folders');
         if (response.ok) {
           const data = await response.json();
-          setUserFolders(data); // Recebe o array do banco (se estiver vazio, vem [])
+          setUserFolders(data);
         }
       } catch (error) {
         console.error('Erro ao buscar pastas do backend:', error);
@@ -55,13 +54,12 @@ export default function ManageSheets() {
       {loading ? (
         <p>A carregar pastas do banco de dados...</p>
       ) : userFolders.length === 0 ? (
-        /* 🟡 MENSAGEM QUANDO AINDA NÃO EXISTEM PASTAS CRIADAS */
         <div style={{ textAlign: 'center', padding: '3rem', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
           <p style={{ fontSize: '1.2rem', color: '#64748b', margin: 0 }}>Nenhuma pasta foi criada por nenhum usuário ainda.</p>
         </div>
       ) : (
         <>
-          {/* GRADE DAS PASTAS CRIADAS */}
+          {/* GRADE DAS PASTAS */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
             {filteredFolders.map((folder) => (
               <div
@@ -150,7 +148,7 @@ export default function ManageSheets() {
                   <tr style={{ backgroundColor: '#f1f5f9', borderBottom: '1px solid #cbd5e1' }}>
                     {selectedSheet.columns?.map((col, index) => (
                       <th key={index} style={{ padding: '0.75rem', fontWeight: 'bold', color: '#334155' }}>
-                        {col}
+                        {typeof col === 'object' ? col.name : col}
                       </th>
                     ))}
                   </tr>
@@ -158,11 +156,21 @@ export default function ManageSheets() {
                 <tbody>
                   {selectedSheet.rows?.map((row, rowIndex) => (
                     <tr key={rowIndex} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                      {row.map((cell, cellIndex) => (
-                        <td key={cellIndex} style={{ padding: '0.75rem', color: '#475569' }}>
-                          {cell}
-                        </td>
-                      ))}
+                      {Array.isArray(row) ? (
+                        row.map((cell, cellIndex) => (
+                          <td key={cellIndex} style={{ padding: '0.75rem', color: '#475569' }}>
+                            {typeof cell === 'object' ? JSON.stringify(cell) : cell}
+                          </td>
+                        ))
+                      ) : typeof row === 'object' ? (
+                        Object.values(row).map((cell, cellIndex) => (
+                          <td key={cellIndex} style={{ padding: '0.75rem', color: '#475569' }}>
+                            {typeof cell === 'object' ? JSON.stringify(cell) : cell}
+                          </td>
+                        ))
+                      ) : (
+                        <td style={{ padding: '0.75rem', color: '#475569' }}>{row}</td>
+                      )}
                     </tr>
                   ))}
                 </tbody>

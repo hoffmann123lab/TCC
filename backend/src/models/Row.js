@@ -1,22 +1,23 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
-const rowSchema = new mongoose.Schema({
-  sheetId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Sheet',
-    required: true,
+const rowSchema = new mongoose.Schema(
+  {
+    sheetId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Sheet',
+      required: true
+    },
+    data: {
+      type: Map,
+      of: String,
+      default: {}
+    }
   },
-  // O tipo 'Map' de 'of: String' é a chave do NoSQL:
-  // permite armazenar pares dinâmicos { "id_da_coluna": "valor" }
-  data: {
-    type: Map,
-    of: String,
-    default: {},
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-});
+  {
+    timestamps: true
+  }
+);
 
-module.exports = mongoose.model('Row', rowSchema);
+const Row = mongoose.model('Row', rowSchema);
+
+export default Row;
