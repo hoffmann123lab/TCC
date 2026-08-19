@@ -4,7 +4,7 @@ import Dashboard from './pages/Dashboard';
 import Templates from './pages/Templates';
 import MySheets from './pages/MySheets';
 import SheetView from './pages/SheetView';
-import ManageSheets from './pages/ManageSheets'; // 🟢 Nova página
+import ManageSheets from './pages/ManageSheets';
 import Login from './pages/Login';
 import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
@@ -64,7 +64,17 @@ function MainLayout() {
             } 
           />
 
-          {/* 🟢 ROTA EXCLUSIVA DE ADMIN */}
+          {/* 🟢 ROTA DE CRIAÇÃO DE PLANILHA ADICIONADA */}
+          <Route 
+            path="/create-sheet" 
+            element={
+              <ProtectedRoute>
+                <SheetView />
+              </ProtectedRoute>
+            } 
+          />
+
+          {/* Rota de Admin */}
           <Route 
             path="/admin/sheets" 
             element={

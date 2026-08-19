@@ -17,12 +17,13 @@ const sheetSchema = new mongoose.Schema(
       ref: 'User',
       required: true
     },
+    // 🟢 Tipagem Mixed permite salvar tanto Strings quanto Objetos sem dar erro no Mongoose
     columns: {
-      type: [String],
+      type: mongoose.Schema.Types.Mixed,
       default: []
     },
     rows: {
-      type: Array,
+      type: mongoose.Schema.Types.Mixed,
       default: []
     }
   },
@@ -31,6 +32,6 @@ const sheetSchema = new mongoose.Schema(
   }
 );
 
-const Sheet = mongoose.model('Sheet', sheetSchema);
+const Sheet = mongoose.models.Sheet || mongoose.model('Sheet', sheetSchema);
 
 export default Sheet;

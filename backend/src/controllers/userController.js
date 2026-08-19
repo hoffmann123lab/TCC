@@ -1,7 +1,8 @@
 import User from '../models/User.js';
+import Sheet from '../models/Sheet.js';
 
 const userController = {
-  // Lista todos os usuários (omitindo a senha por segurança)
+  // Lista todos os usuários
   getAllUsers: async (req, res) => {
     try {
       const users = await User.find().select('-password');
@@ -11,7 +12,47 @@ const userController = {
     }
   },
 
-  // Busca um usuário por ID (omitindo a senha)
+  // Busca pastas e planilhas agrupadas por usuário
+  getUserFolders: async (req, res) => {
+    try {
+      const users = await User.find({}, 'name email');
+      
+      // Busca todas as planilhas preenchendo os dados do usuário criador
+      const sheets = await Sheet.find().populate('userId', '_id name email');
+
+      const folders = users.map((user) => {
+        const userIdStr = user._id.toString();
+
+        // Filtra as planilhas pertencentes ao usuário corrente
+        const userSheets = sheets.filter((sheet) => {
+          if (!sheet.userId) return false;
+          
+          const sheetOwnerId = sheet.userId._id 
+            ? sheet.userId._id.toString() 
+            : sheet.userId.toString();
+
+          return sheetOwnerId === userIdStr;
+        });
+
+        return {
+          id: user._id,
+          folderName: `Pasta de ${user.name}`,
+          owner: user.name,
+          email: user.email,
+          sheets: userSheets
+        };
+      });
+
+      return res.status(200).json(folders);
+    } catch (error) {
+      return res.status(500).json({ 
+        message: 'Erro ao buscar pastas dos usuários.', 
+        error: error.message 
+      });
+    }
+  },
+
+  // Busca usuário por ID
   getUserById: async (req, res) => {
     try {
       const user = await User.findById(req.params.id).select('-password');
@@ -22,7 +63,7 @@ const userController = {
     }
   },
 
-  // Cadastro de Usuário (POST /register)
+  // Cadastro de Usuário
   postUser: async (req, res) => {
     try {
       const { name, email, password } = req.body;
@@ -30,15 +71,12 @@ const userController = {
         return res.status(400).json({ message: 'Nome, e-mail e senha são obrigatórios.' });
       }
 
-      // Verifica se o e-mail já existe no MongoDB
       const userExists = await User.findOne({ email });
       if (userExists) {
         return res.status(400).json({ message: 'E-mail já cadastrado.' });
       }
 
       const newUser = await User.create({ name, email, password });
-
-      // Omitir a senha antes de enviar a resposta
       const userResponse = newUser.toObject();
       delete userResponse.password;
 
@@ -48,7 +86,7 @@ const userController = {
     }
   },
 
-  // Autenticação / Login (POST /login)
+  // Login
   postLogin: async (req, res) => {
     try {
       const { email, password } = req.body;
@@ -70,7 +108,7 @@ const userController = {
     }
   },
 
-  // Atualizar dados
+  // Atualizar usuário
   updateUser: async (req, res) => {
     try {
       const updatedUser = await User.findByIdAndUpdate(

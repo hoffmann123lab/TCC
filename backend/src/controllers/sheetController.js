@@ -1,33 +1,49 @@
 import Sheet from '../models/Sheet.js';
+import mongoose from 'mongoose';
 
 const sheetController = {
-  // Buscar todas as planilhas (inclui os dados do criador)
+  // Buscar planilhas do usuário ou todas
   getSheets: async (req, res) => {
     try {
-      const sheets = await Sheet.find()
+      const { userId } = req.query;
+      let filter = {};
+
+      if (userId && userId !== 'undefined' && userId !== 'null') {
+        // Garante suporte tanto para String quanto para ObjectId do Mongoose
+        if (mongoose.Types.ObjectId.isValid(userId)) {
+          filter = { userId: new mongoose.Types.ObjectId(userId) };
+        } else {
+          filter = { userId };
+        }
+      }
+
+      const sheets = await Sheet.find(filter)
         .populate('userId', 'name email role')
         .sort({ createdAt: -1 });
+
       return res.status(200).json(sheets);
     } catch (error) {
+      console.error('Erro ao buscar planilhas:', error);
       return res.status(500).json({ message: 'Erro ao buscar planilhas.', error: error.message });
     }
   },
 
-  // Criar uma nova planilha vinculada ao usuário
+  // Criar uma nova planilha
   createSheet: async (req, res) => {
     try {
-      const { title, description, columns, rows, userId } = req.body;
+      const { title, description, columns, rows, userId, user } = req.body;
+      const ownerId = userId || user?._id || user?.id || user;
 
-      if (!userId) {
+      if (!ownerId) {
         return res.status(400).json({ message: 'O ID do usuário (userId) é obrigatório.' });
       }
 
       const newSheet = await Sheet.create({
-        title,
-        description,
-        columns,
-        rows,
-        userId
+        title: title || 'Sem título',
+        description: description || '',
+        columns: columns || [],
+        rows: rows || [],
+        userId: ownerId
       });
 
       return res.status(201).json(newSheet);
@@ -58,7 +74,7 @@ const sheetController = {
       if (!deleted) return res.status(404).json({ message: 'Planilha não encontrada.' });
       return res.status(200).json({ message: 'Planilha removida com sucesso.' });
     } catch (error) {
-      return res.status(400).json({ message: 'Erro ao apagar planilha.', error: error.message });
+      return res.status(400).json({ message: error.message });
     }
   }
 };

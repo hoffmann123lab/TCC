@@ -1,27 +1,20 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "API do projeto SheetHub",
+  "main": "src/server.js",
+  "type": "module",
   "scripts": {
+    "start": "node src/server.js",
     "dev": "nodemon src/server.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
-    "body-parser": "^2.3.0",
-    "cors": "^2.8.6",
-    "dotenv": "^17.4.2",
-    "express": "^5.2.1",
-    "mongoose": "^9.9.3",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-router-dom": "^6.20.0",
-    "xlsx": "^0.18.5"
+    "cors": "^2.8.5",
+    "dotenv": "^16.6.1",
+    "express": "^4.19.2",
+    "mongoose": "^8.24.3"
   },
   "devDependencies": {
-    "nodemon": "^3.1.14"
-  },
-  "type": "module"
+    "nodemon": "^3.1.0"
+  }
 }

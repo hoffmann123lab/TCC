@@ -10,7 +10,8 @@ export default function ManageSheets() {
   useEffect(() => {
     async function fetchFolders() {
       try {
-        const response = await fetch('http://localhost:5000/api/admin/folders');
+        // 🟢 URL atualizada para a rota /api/users/admin/folders
+        const response = await fetch('http://localhost:5000/api/users/admin/folders');
         if (response.ok) {
           const data = await response.json();
           setUserFolders(data);
@@ -59,7 +60,6 @@ export default function ManageSheets() {
         </div>
       ) : (
         <>
-          {/* GRADE DAS PASTAS */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
             {filteredFolders.map((folder) => (
               <div
@@ -87,7 +87,6 @@ export default function ManageSheets() {
             ))}
           </div>
 
-          {/* VISUALIZAÇÃO DA PASTA SELECIONADA */}
           {selectedFolder && (
             <div style={{ backgroundColor: '#fff', padding: '1.5rem', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
@@ -131,7 +130,6 @@ export default function ManageSheets() {
         </>
       )}
 
-      {/* MODAL PARA VER O CONTEÚDO DA PLANILHA */}
       {selectedSheet && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
           <div style={{ backgroundColor: '#fff', padding: '2rem', borderRadius: '8px', width: '90%', maxWidth: '800px', maxHeight: '80vh', overflowY: 'auto' }}>
