@@ -44,9 +44,9 @@ export default function Login() {
         setName('');
         setPassword('');
       } else {
-        // 🟢 Salva no localStorage antes de mudar de página
+        // 🟢 Salva no localStorage na chave 'user' o objeto vindo do backend
         localStorage.setItem('user_authenticated', 'true');
-        localStorage.setItem('user_data', JSON.stringify(data.user));
+        localStorage.setItem('user', JSON.stringify(data.user));
         
         // 🟢 Navega para o dashboard
         navigate('/dashboard');

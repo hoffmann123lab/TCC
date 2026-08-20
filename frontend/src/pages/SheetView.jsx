@@ -84,7 +84,7 @@ function normalizarTexto(valor, nomeColuna = '') {
     }
   }
 
-  // 7. PLACAS DE VEÍCULO (Padrão Antigo e Mercosul)
+  // 7. PLACAS DE VEÍCULO
   if (colMin.includes('placa') || colMin.includes('veículo') || colMin.includes('veiculo')) {
     const limpo = texto.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
     if (limpo.length === 7) {
@@ -95,7 +95,7 @@ function normalizarTexto(valor, nomeColuna = '') {
     }
   }
 
-  // 8. ESTADOS (UF - Brasil)
+  // 8. ESTADOS (UF)
   if (colMin.includes('uf') || colMin.includes('estado')) {
     const ufs = {
       'acre': 'AC', 'alagoas': 'AL', 'amapa': 'AP', 'amapá': 'AP', 'amazonas': 'AM',
@@ -112,7 +112,7 @@ function normalizarTexto(valor, nomeColuna = '') {
     if (texto.length === 2) return texto.toUpperCase();
   }
 
-  // 9. UNIDADES DE MEDIDA (PESO E DISTÂNCIA)
+  // 9. UNIDADES DE MEDIDA
   if (colMin.includes('peso') || colMin.includes('massa')) {
     const num = parseFloat(texto.replace(',', '.'));
     if (!isNaN(num)) return `${num} kg`;
@@ -140,7 +140,7 @@ function normalizarTexto(valor, nomeColuna = '') {
     if (['outro', 'outros', 'nb', 'nao-binario', 'não-binário'].includes(textoMin)) return 'Outro';
   }
 
-  // 13. CONFIRMAÇÃO / BOOLEANOS (Sim / Não)
+  // 13. CONFIRMAÇÃO / BOOLEANOS
   if (colMin.includes('reservado') || colMin.includes('confirmado') || colMin.includes('pago') || colMin.includes('concluído') || colMin.includes('ativo')) {
     if (['s', 'sim', 'y', 'yes', 'true', 'v', 'verdadeiro', '1', 'ok'].includes(textoMin)) return 'Sim';
     if (['n', 'nao', 'não', 'no', 'false', 'f', 'falso', '0'].includes(textoMin)) return 'Não';
@@ -254,7 +254,6 @@ export default function SheetView() {
     setRows([...rows, newEmptyRow]);
   };
 
-  // Adicionar Coluna
   const handleAddColumn = () => {
     const colName = prompt('Digite o nome da nova coluna:');
     if (colName) {
@@ -263,24 +262,20 @@ export default function SheetView() {
     }
   };
 
-  // Atualizar Célula
   const handleCellChange = (rowIndex, colIndex, value) => {
     const updatedRows = [...rows];
     updatedRows[rowIndex][colIndex] = value;
     setRows(updatedRows);
   };
 
-  // 🚀 Finalizar Tabela: Varrer, Padronizar, Gerar Excel no PC e Enviar para Backend
   const handleFinishTable = async () => {
     if (columns.length === 0) {
       alert('A planilha precisa ter pelo menos uma coluna antes de ser finalizada!');
       return;
     }
 
-    // 1. Padroniza os cabeçalhos das colunas
     const colunasPadronizadas = columns.map(col => normalizarTexto(col));
 
-    // 2. Varre TODAS as linhas e colunas aplicando a padronização automática
     const linhasPadronizadas = rows.map(row => {
       return row.map((celula, colIndex) => {
         const nomeColuna = colunasPadronizadas[colIndex] || '';
@@ -288,15 +283,12 @@ export default function SheetView() {
       });
     });
 
-    // 3. Atualiza o estado da tela com os dados limpos
     setColumns(colunasPadronizadas);
     setRows(linhasPadronizadas);
 
-    // 4. Prepara a matriz final (Cabeçalho + Linhas Padronizadas)
     const tableData = [colunasPadronizadas, ...linhasPadronizadas];
     const worksheet = XLSX.utils.aoa_to_sheet(tableData);
 
-    // 📏 Ajusta automaticamente a largura de cada coluna no Excel
     const colWidths = colunasPadronizadas.map((col, colIndex) => {
       let maxLength = col ? col.length : 10;
       linhasPadronizadas.forEach(row => {
@@ -309,7 +301,6 @@ export default function SheetView() {
     });
     worksheet['!cols'] = colWidths;
 
-    // 5. Salva o arquivo no computador (Downloads)
     const cleanFileName = sheetTitle.replace(/[^a-zA-Z0-9-áàâãéèêíïóôõöúçñÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑ\s]/g, '').trim();
     const fileName = `${cleanFileName || 'Planilha'}.xlsx`;
 
@@ -317,9 +308,18 @@ export default function SheetView() {
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Planilha');
     XLSX.writeFile(workbook, fileName);
 
-    // 6. Envia para o Backend para emitir o alerta no terminal do servidor
+    // 🟢 ENVIAR PARA O BACKEND
     try {
-      await fetch('http://localhost:5000/api/sheets', {
+      const storedUser = localStorage.getItem('user');
+      const loggedUser = storedUser ? JSON.parse(storedUser) : null;
+      const userId = loggedUser?._id || loggedUser?.id;
+
+      if (!userId) {
+        alert('Atenção: Usuário não identificado. Faça login novamente para salvar a planilha no banco de dados.');
+        return;
+      }
+
+      const response = await fetch('http://localhost:5000/api/sheets', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -327,18 +327,26 @@ export default function SheetView() {
           fileName: fileName,
           columns: colunasPadronizadas,
           rows: linhasPadronizadas,
+          userId: userId
         }),
       });
-  } catch (error) {
-    console.log('Arquivo baixado no PC, mas o servidor backend não respondeu.');
-    console.error(error); // 👈 Usando a variável aqui, o sublinhado some!
-  }
+
+      if (response.ok) {
+        console.log('✅ Planilha salva com sucesso no MongoDB!');
+      } else {
+        const errorData = await response.json();
+        console.error('❌ Erro da API ao salvar:', errorData);
+      }
+    } catch (error) {
+      console.log('Arquivo baixado no PC, mas o servidor backend não respondeu.');
+      console.error(error);
+    }
+
     alert(`🎉 Tabela finalizada com sucesso! Todos os dados foram padronizados e salvos em Downloads como "${fileName}".`);
   };
 
   return (
     <div className="sheet-container">
-      {/* Topo / Cabeçalho */}
       <div className="sheet-header">
         <div className="sheet-title-area">
           <Link to="/" className="btn-back">← Voltar</Link>
@@ -358,7 +366,6 @@ export default function SheetView() {
         </div>
       </div>
 
-      {/* Tabela Interativa */}
       <div className="sheet-table-wrapper">
         <table className="sheet-table">
           {columns.length > 0 && (
