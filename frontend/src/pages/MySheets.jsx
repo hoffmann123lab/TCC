@@ -12,28 +12,37 @@ export default function MySheets() {
   useEffect(() => {
     async function fetchMySheets() {
       try {
-        const loggedUser = JSON.parse(localStorage.getItem('user'));
+        setLoading(true);
+        // Busca suporte flexível a ambas as chaves do localStorage
+        const storedUser = localStorage.getItem('user_data') || localStorage.getItem('user');
+        const loggedUser = storedUser ? JSON.parse(storedUser) : null;
         const userId = loggedUser?._id || loggedUser?.id;
-        
+
         if (loggedUser?.name) {
           setUserName(loggedUser.name);
         }
 
+        // Se não houver ID de usuário logado, garante que a lista fica vazia
         if (!userId) {
           console.warn('Nenhum usuário logado encontrado no localStorage.');
+          setSheets([]);
           setLoading(false);
           return;
         }
 
+        // Requisição enviando o userId do usuário logado
         const response = await fetch(`http://localhost:5000/api/sheets?userId=${userId}`);
+        
         if (response.ok) {
           const data = await response.json();
-          setSheets(data);
+          setSheets(Array.isArray(data) ? data : []);
         } else {
           console.error('Falha na resposta do servidor:', response.status);
+          setSheets([]);
         }
       } catch (error) {
         console.error('Erro de conexão ao buscar planilhas:', error);
+        setSheets([]);
       } finally {
         setLoading(false);
       }
@@ -131,7 +140,7 @@ export default function MySheets() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
           {sheets.map((sheet) => (
             <div
-              key={sheet._id}
+              key={sheet._id || sheet.id}
               style={{
                 backgroundColor: '#fff',
                 padding: '1.5rem',

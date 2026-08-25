@@ -1,6 +1,12 @@
 import User from '../models/User.js';
 import Sheet from '../models/Sheet.js';
 
+// Lista explícita de e-mails de administradores permitidos
+const ADMIN_EMAILS = [
+  'rafaelhoffmann@gmail.com',
+  'samuelcunha@gmail.com'
+];
+
 const userController = {
   // Lista todos os usuários
   getAllUsers: async (req, res) => {
@@ -12,18 +18,36 @@ const userController = {
     }
   },
 
-  // Busca pastas e planilhas agrupadas por usuário
+  // Busca pastas e planilhas agrupadas por usuário (Apenas Administradores Autorizados)
   getUserFolders: async (req, res) => {
     try {
-      const users = await User.find({}, 'name email');
-      
-      // Busca todas as planilhas preenchendo os dados do usuário criador
+      const { adminId } = req.query;
+
+      if (!adminId) {
+        return res.status(401).json({ message: 'Acesso não autorizado. Identificação do administrador necessária.' });
+      }
+
+      // Valida se o usuário existe no banco de dados
+      const adminUser = await User.findById(adminId);
+
+      if (!adminUser) {
+        return res.status(404).json({ message: 'Administrador não encontrado.' });
+      }
+
+      const cleanEmail = adminUser.email ? adminUser.email.toLowerCase().trim() : '';
+
+      // Valida se o e-mail está na lista de admins autorizados
+      if (!ADMIN_EMAILS.includes(cleanEmail)) {
+        return res.status(403).json({ message: 'Acesso negado. Você não tem permissão para acessar esta área.' });
+      }
+
+      // Consulta os dados para montagem do painel de gerenciamento
+      const users = await User.find({}, 'name email role');
       const sheets = await Sheet.find().populate('userId', '_id name email');
 
       const folders = users.map((user) => {
         const userIdStr = user._id.toString();
 
-        // Filtra as planilhas pertencentes ao usuário corrente
         const userSheets = sheets.filter((sheet) => {
           if (!sheet.userId) return false;
           
@@ -71,12 +95,17 @@ const userController = {
         return res.status(400).json({ message: 'Nome, e-mail e senha são obrigatórios.' });
       }
 
-      const userExists = await User.findOne({ email });
+      const cleanEmail = email.toLowerCase().trim();
+
+      const userExists = await User.findOne({ email: cleanEmail });
       if (userExists) {
         return res.status(400).json({ message: 'E-mail já cadastrado.' });
       }
 
-      const newUser = await User.create({ name, email, password });
+      // Define role de admin se for um dos e-mails permitidos
+      const role = ADMIN_EMAILS.includes(cleanEmail) ? 'admin' : 'user';
+
+      const newUser = await User.create({ name, email: cleanEmail, password, role });
       const userResponse = newUser.toObject();
       delete userResponse.password;
 
@@ -94,9 +123,17 @@ const userController = {
         return res.status(400).json({ message: 'E-mail e senha são obrigatórios.' });
       }
 
-      const user = await User.findOne({ email });
+      const cleanEmail = email.toLowerCase().trim();
+      const user = await User.findOne({ email: cleanEmail });
+
       if (!user || user.password !== password) {
         return res.status(401).json({ message: 'E-mail ou senha incorretos.' });
+      }
+
+      // Garante que o usuário fique marcado como admin se for um dos e-mails da lista
+      if (ADMIN_EMAILS.includes(cleanEmail) && user.role !== 'admin') {
+        user.role = 'admin';
+        await user.save();
       }
 
       const userResponse = user.toObject();

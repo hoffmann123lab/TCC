@@ -1,4 +1,10 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+const ALLOWED_ADMIN_EMAILS = [
+  'rafaelhoffmann@gmail.com',
+  'samuelcunha@gmail.com'
+];
 
 export default function ManageSheets() {
   const [userFolders, setUserFolders] = useState([]);
@@ -7,24 +13,56 @@ export default function ManageSheets() {
   const [selectedFolder, setSelectedFolder] = useState(null);
   const [selectedSheet, setSelectedSheet] = useState(null);
 
+  const navigate = useNavigate();
+
   useEffect(() => {
     async function fetchFolders() {
       try {
-        // 🟢 URL atualizada para a rota /api/users/admin/folders
-        const response = await fetch('http://localhost:5000/api/users/admin/folders');
+        setLoading(true);
+
+        // 1. Busca os dados salvos no localStorage
+        const storedData = localStorage.getItem('user_data') || localStorage.getItem('user');
+        if (!storedData) {
+          alert('Sessão expirada. Faça login novamente.');
+          navigate('/');
+          return;
+        }
+
+        const parsedData = JSON.parse(storedData);
+        
+        // Garante a leitura correta caso venha como { user: { ... } } ou direto { ... }
+        const user = parsedData.user || parsedData;
+        const userId = user._id || user.id;
+        const userEmail = user.email ? user.email.toLowerCase().trim() : '';
+
+        // 2. Valida se o e-mail pertence aos administradores permitidos
+        if (!ALLOWED_ADMIN_EMAILS.includes(userEmail)) {
+          alert('Acesso restrito a administradores autorizados!');
+          navigate('/dashboard');
+          return;
+        }
+
+        // 3. Faz a requisição ao Backend enviando o ID do Administrador
+        const response = await fetch(`http://localhost:5000/api/users/admin/folders?adminId=${userId}`);
+
         if (response.ok) {
           const data = await response.json();
-          setUserFolders(data);
+          setUserFolders(Array.isArray(data) ? data : []);
+        } else {
+          const errData = await response.json().catch(() => ({}));
+          alert(errData.message || 'Você não tem permissão para acessar estas pastas.');
+          navigate('/dashboard');
         }
       } catch (error) {
-        console.error('Erro ao buscar pastas do backend:', error);
+        console.error('Erro ao buscar pastas no servidor:', error);
+        setUserFolders([]);
       } finally {
         setLoading(false);
       }
     }
 
     fetchFolders();
-  }, []);
+  }, [navigate]);
 
   const filteredFolders = userFolders.filter(
     (folder) =>
@@ -56,7 +94,7 @@ export default function ManageSheets() {
         <p>A carregar pastas do banco de dados...</p>
       ) : userFolders.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '3rem', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-          <p style={{ fontSize: '1.2rem', color: '#64748b', margin: 0 }}>Nenhuma pasta foi criada por nenhum usuário ainda.</p>
+          <p style={{ fontSize: '1.2rem', color: '#64748b', margin: 0 }}>Nenhuma pasta foi encontrada.</p>
         </div>
       ) : (
         <>

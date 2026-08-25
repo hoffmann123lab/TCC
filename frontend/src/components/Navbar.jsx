@@ -1,36 +1,33 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import '../App.css';
 
+const ALLOWED_ADMIN_EMAILS = [
+  'rafaelhoffmann@gmail.com',
+  'samuelcunha@gmail.com'
+];
+
 export default function Navbar() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // 🔍 Pega os dados do usuário do localStorage
-  const userData = JSON.parse(localStorage.getItem('user_data') || '{}');
-  const isAdmin = userData.role === 'admin';
+  const storedData = localStorage.getItem('user_data') || localStorage.getItem('user');
+  const parsedData = storedData ? JSON.parse(storedData) : {};
+  const user = parsedData.user || parsedData;
+
+  const userEmail = user?.email ? user.email.toLowerCase().trim() : '';
+  const isAdmin = ALLOWED_ADMIN_EMAILS.includes(userEmail);
 
   const isActive = (path) => (location.pathname === path ? 'nav-link active' : 'nav-link');
 
-  // 🚪 Função de Logout com Aviso
   const handleLogout = () => {
-    // 1. Pega o nome do usuário logado (ou usa um texto padrão se não encontrar)
-    const userName = userData.name || 'Usuário';
-
-    // 2. Exibe o aviso
-    alert(`Você saiu da conta: ${userName}`);
-
-    // 3. Limpa a sessão do localStorage
-    localStorage.removeItem('user_authenticated');
-    localStorage.removeItem('user_data');
-
-    // 4. Redireciona para a página de Login
+    alert(`Você saiu da conta.`);
+    localStorage.clear();
     navigate('/');
   };
 
   return (
     <nav className="navbar">
       <div className="navbar-container">
-        {/* Logo apontando para o Dashboard */}
         <Link to="/dashboard" className="navbar-brand">
           <span>SheetHub</span>
         </Link>
@@ -48,14 +45,13 @@ export default function Navbar() {
             📁 Minhas Planilhas
           </Link>
 
-          {/* ITEM EXCLUSIVO DO ADMIN */}
+          {/* Renderizado apenas para Rafael e Samuel */}
           {isAdmin && (
             <Link to="/admin/sheets" className={isActive('/admin/sheets')}>
               ⚙️ Gerenciar Planilhas
             </Link>
           )}
 
-          {/* BOTÃO DE SAIR */}
           <button
             onClick={handleLogout}
             style={{

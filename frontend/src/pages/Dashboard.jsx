@@ -4,18 +4,38 @@ import '../App.css';
 
 export default function Dashboard() {
   const [sheetsCount, setSheetsCount] = useState(0);
-  const [templatesCount] = useState(8); // Fixed 8 models
+  const [templatesCount] = useState(8);
   const [downloadsCount, setDownloadsCount] = useState(0);
   const [recentSheets, setRecentSheets] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const savedSheets = JSON.parse(localStorage.getItem('my_sheets') || '[]');
-    setSheetsCount(savedSheets.length);
+    async function loadDashboardData() {
+      try {
+        const storedUser = localStorage.getItem('user');
+        const loggedUser = storedUser ? JSON.parse(storedUser) : null;
+        const userId = loggedUser?._id || loggedUser?.id;
 
-    const savedDownloads = parseInt(localStorage.getItem('sheet_downloads_count') || '0', 10);
-    setDownloadsCount(savedDownloads);
+        if (userId) {
+          // Busca planilhas da API passando o userId
+          const response = await fetch(`http://localhost:5000/api/sheets?userId=${userId}`);
+          if (response.ok) {
+            const sheets = await response.json();
+            setSheetsCount(sheets.length);
+            setRecentSheets(sheets.slice(0, 3)); // Pega as 3 mais recentes
+          }
+        }
 
-    setRecentSheets(savedSheets.slice(-3).reverse());
+        const savedDownloads = parseInt(localStorage.getItem('sheet_downloads_count') || '0', 10);
+        setDownloadsCount(savedDownloads);
+      } catch (error) {
+        console.error('Erro ao carregar dados do Dashboard:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadDashboardData();
   }, []);
 
   const stats = [
@@ -35,7 +55,7 @@ export default function Dashboard() {
         borderRadius: '12px',
         marginBottom: '2rem',
         display: 'flex',
-        justifyContent: 'space-between',
+        justify: 'space-between',
         alignItems: 'center',
         flexWrap: 'wrap',
         gap: '1rem'
@@ -73,7 +93,9 @@ export default function Dashboard() {
             </div>
             <div>
               <span style={{ fontSize: '0.875rem', color: '#64748b', fontWeight: '500' }}>{stat.label}</span>
-              <h2 style={{ margin: 0, fontSize: '1.8rem', color: '#0f172a', fontWeight: '700' }}>{stat.value}</h2>
+              <h2 style={{ margin: 0, fontSize: '1.8rem', color: '#0f172a', fontWeight: '700' }}>
+                {loading ? '...' : stat.value}
+              </h2>
             </div>
           </div>
         ))}
@@ -87,11 +109,13 @@ export default function Dashboard() {
             <Link to="/sheets" style={{ color: '#2563eb', textDecoration: 'none', fontSize: '0.875rem', fontWeight: '600' }}>Ver todas →</Link>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            {recentSheets.length === 0 ? (
+            {loading ? (
+              <p style={{ color: '#94a3b8', fontSize: '0.9rem', margin: 0 }}>Carregando...</p>
+            ) : recentSheets.length === 0 ? (
               <p style={{ color: '#94a3b8', fontSize: '0.9rem', margin: 0 }}>Nenhuma planilha criada ainda.</p>
             ) : (
               recentSheets.map((sheet, idx) => (
-                <Link key={idx} to={`/sheet/${sheet.id || idx}`} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem 1rem', backgroundColor: '#f8fafc', borderRadius: '6px', textDecoration: 'none', color: '#334155' }}>
+                <Link key={sheet._id || idx} to={`/sheet/${sheet._id}`} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem 1rem', backgroundColor: '#f8fafc', borderRadius: '6px', textDecoration: 'none', color: '#334155' }}>
                   <span style={{ fontWeight: '500' }}>{sheet.title || 'Sem título'}</span>
                 </Link>
               ))

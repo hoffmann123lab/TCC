@@ -44,11 +44,12 @@ export default function Login() {
         setName('');
         setPassword('');
       } else {
-        // 🟢 Salva no localStorage na chave 'user' o objeto vindo do backend
+        // Salva nas duas chaves para evitar divergências em componentes legados
         localStorage.setItem('user_authenticated', 'true');
         localStorage.setItem('user', JSON.stringify(data.user));
+        localStorage.setItem('user_data', JSON.stringify(data.user));
         
-        // 🟢 Navega para o dashboard
+        // Navega para o dashboard
         navigate('/dashboard');
       }
     } catch (error) {

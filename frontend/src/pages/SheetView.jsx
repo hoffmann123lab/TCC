@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link, useLocation } from 'react-router-dom';
 import * as XLSX from 'xlsx';
 import '../App.css';
@@ -237,13 +237,29 @@ export default function SheetView() {
   const isTemplate = id in TEMPLATE_DATA;
   const activeTemplate = isTemplate ? TEMPLATE_DATA[id] : null;
 
-  const sheetTitle = location.state?.title || (activeTemplate ? activeTemplate.title : 'Nova Planilha');
+  const defaultTitle = location.state?.title || (activeTemplate ? activeTemplate.title : 'Nova Planilha');
 
-  const initialColumns = activeTemplate ? activeTemplate.columns : DEFAULT_BLANK_COLUMNS;
-  const initialRows = activeTemplate ? activeTemplate.rows : DEFAULT_BLANK_ROWS;
+  // Estado dinâmico do título da planilha
+  const [sheetTitle, setSheetTitle] = useState(defaultTitle);
+  const [columns, setColumns] = useState(activeTemplate ? activeTemplate.columns : DEFAULT_BLANK_COLUMNS);
+  const [rows, setRows] = useState(activeTemplate ? activeTemplate.rows : DEFAULT_BLANK_ROWS);
+  const [isSaving, setIsSaving] = useState(false);
 
-  const [columns, setColumns] = useState(initialColumns);
-  const [rows, setRows] = useState(initialRows);
+  // Carregar dados caso seja uma planilha já existente carregada do backend
+  useEffect(() => {
+    if (id && !isTemplate) {
+      fetch(`http://localhost:5000/api/sheets/${id}`)
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (data) {
+            if (data.title) setSheetTitle(data.title);
+            if (data.columns) setColumns(data.columns);
+            if (data.rows) setRows(data.rows);
+          }
+        })
+        .catch((err) => console.error('Erro ao buscar planilha existente:', err));
+    }
+  }, [id, isTemplate]);
 
   const handleAddRow = () => {
     if (columns.length === 0) {
@@ -274,6 +290,8 @@ export default function SheetView() {
       return;
     }
 
+    setIsSaving(true);
+
     const colunasPadronizadas = columns.map(col => normalizarTexto(col));
 
     const linhasPadronizadas = rows.map(row => {
@@ -286,6 +304,7 @@ export default function SheetView() {
     setColumns(colunasPadronizadas);
     setRows(linhasPadronizadas);
 
+    // Gerar planilha e download (.xlsx)
     const tableData = [colunasPadronizadas, ...linhasPadronizadas];
     const worksheet = XLSX.utils.aoa_to_sheet(tableData);
 
@@ -308,27 +327,34 @@ export default function SheetView() {
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Planilha');
     XLSX.writeFile(workbook, fileName);
 
-    // 🟢 ENVIAR PARA O BACKEND
+    // Enviar dados para o Backend Node.js / MongoDB
     try {
-      const storedUser = localStorage.getItem('user');
+      const storedUser = localStorage.getItem('user') || localStorage.getItem('user_data');
       const loggedUser = storedUser ? JSON.parse(storedUser) : null;
       const userId = loggedUser?._id || loggedUser?.id;
 
       if (!userId) {
         alert('Atenção: Usuário não identificado. Faça login novamente para salvar a planilha no banco de dados.');
+        setIsSaving(false);
         return;
       }
 
-      const response = await fetch('http://localhost:5000/api/sheets', {
-        method: 'POST',
+      const payload = {
+        title: sheetTitle,
+        fileName: fileName,
+        columns: colunasPadronizadas,
+        rows: linhasPadronizadas,
+        userId: userId
+      };
+
+      const isEditingExisting = id && !isTemplate;
+      const url = isEditingExisting ? `http://localhost:5000/api/sheets/${id}` : 'http://localhost:5000/api/sheets';
+      const method = isEditingExisting ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method: method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: sheetTitle,
-          fileName: fileName,
-          columns: colunasPadronizadas,
-          rows: linhasPadronizadas,
-          userId: userId
-        }),
+        body: JSON.stringify(payload),
       });
 
       if (response.ok) {
@@ -340,6 +366,8 @@ export default function SheetView() {
     } catch (error) {
       console.log('Arquivo baixado no PC, mas o servidor backend não respondeu.');
       console.error(error);
+    } finally {
+      setIsSaving(false);
     }
 
     alert(`🎉 Tabela finalizada com sucesso! Todos os dados foram padronizados e salvos em Downloads como "${fileName}".`);
@@ -348,9 +376,36 @@ export default function SheetView() {
   return (
     <div className="sheet-container">
       <div className="sheet-header">
-        <div className="sheet-title-area">
+        <div className="sheet-title-area" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <Link to="/" className="btn-back">← Voltar</Link>
-          <h1 className="sheet-title">{sheetTitle}</h1>
+          
+          {/* Input editável para alterar o nome da planilha a qualquer momento */}
+          <input
+            type="text"
+            value={sheetTitle}
+            onChange={(e) => setSheetTitle(e.target.value)}
+            placeholder="Nome da planilha..."
+            style={{
+              fontSize: '1.4rem',
+              fontWeight: 'bold',
+              color: '#0f172a',
+              border: '1px solid transparent',
+              borderRadius: '6px',
+              padding: '0.3rem 0.6rem',
+              backgroundColor: '#f8fafc',
+              outline: 'none',
+              transition: 'all 0.2s ease',
+              minWidth: '250px'
+            }}
+            onFocus={(e) => {
+              e.target.style.backgroundColor = '#ffffff';
+              e.target.style.borderColor = '#2563eb';
+            }}
+            onBlur={(e) => {
+              e.target.style.backgroundColor = '#f8fafc';
+              e.target.style.borderColor = 'transparent';
+            }}
+          />
         </div>
 
         <div className="sheet-actions">
@@ -360,8 +415,8 @@ export default function SheetView() {
           <button className="btn btn-secondary" onClick={handleAddRow}>
             + Linha
           </button>
-          <button className="btn btn-primary btn-finish" onClick={handleFinishTable}>
-            ✅ Finalizar Tabela
+          <button className="btn btn-primary btn-finish" onClick={handleFinishTable} disabled={isSaving}>
+            {isSaving ? '⏳ Processando...' : '✅ Finalizar Tabela'}
           </button>
         </div>
       </div>
