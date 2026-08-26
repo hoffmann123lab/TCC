@@ -15,14 +15,22 @@ export default function Navbar() {
   const user = parsedData.user || parsedData;
 
   const userEmail = user?.email ? user.email.toLowerCase().trim() : '';
+  const userName = user?.name || user?.nome || '';
   const isAdmin = ALLOWED_ADMIN_EMAILS.includes(userEmail);
 
   const isActive = (path) => (location.pathname === path ? 'nav-link active' : 'nav-link');
 
   const handleLogout = () => {
-    alert(`Você saiu da conta.`);
+    const nameToDisplay = userName;
+
     localStorage.clear();
-    navigate('/');
+
+    navigate('/', {
+      state: {
+        loggedOut: true,
+        userName: nameToDisplay
+      }
+    });
   };
 
   return (
@@ -45,11 +53,16 @@ export default function Navbar() {
             📁 Minhas Planilhas
           </Link>
 
-          {/* Renderizado apenas para Rafael e Samuel */}
+          {/* Renderizado apenas para admins */}
           {isAdmin && (
-            <Link to="/admin/sheets" className={isActive('/admin/sheets')}>
-              ⚙️ Gerenciar Planilhas
-            </Link>
+            <>
+              <Link to="/admin/sheets" className={isActive('/admin/sheets')}>
+                ⚙️ Gerenciar Planilhas
+              </Link>
+              <Link to="/admin/users" className={isActive('/admin/users')}>
+                👥 Gerenciar Usuários
+              </Link>
+            </>
           )}
 
           <button

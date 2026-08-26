@@ -27,6 +27,15 @@ const userSchema = new mongoose.Schema(
       type: String,
       enum: ['user', 'admin'],
       default: 'user'
+    },
+    // 🟢 Novo campo de banimento dentro do próprio User
+    isBanned: {
+      type: Boolean,
+      default: false
+    },
+    banReason: {
+      type: String,
+      default: ''
     }
   },
   {
@@ -34,7 +43,7 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-// 🟢 Ajuste aqui: Sem o parâmetro 'next'
+// Hook para atribuir role de admin automaticamente
 userSchema.pre('save', function () {
   if (ADMIN_EMAILS.includes(this.email.toLowerCase())) {
     this.role = 'admin';

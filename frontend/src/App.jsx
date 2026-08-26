@@ -5,6 +5,7 @@ import Templates from './pages/Templates';
 import MySheets from './pages/MySheets';
 import SheetView from './pages/SheetView';
 import ManageSheets from './pages/ManageSheets';
+import AdminUsersPage from './pages/AdminUsersPage'; // 🟢 1. Importar a nova página
 import Login from './pages/Login';
 import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
@@ -63,7 +64,6 @@ function MainLayout() {
               </ProtectedRoute>
             } 
           />
-
           <Route 
             path="/create-sheet" 
             element={
@@ -73,12 +73,22 @@ function MainLayout() {
             } 
           />
 
-          {/* Rota de Admin */}
+          {/* Rotas de Admin */}
           <Route 
             path="/admin/sheets" 
             element={
               <ProtectedRoute requireAdmin={true}>
                 <ManageSheets />
+              </ProtectedRoute>
+            } 
+          />
+
+          {/* 🟢 2. Nova Rota de Gerenciamento de Usuários */}
+          <Route 
+            path="/admin/users" 
+            element={
+              <ProtectedRoute requireAdmin={true}>
+                <AdminUsersPage />
               </ProtectedRoute>
             } 
           />

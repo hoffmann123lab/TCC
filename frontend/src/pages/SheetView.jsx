@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link, useLocation } from 'react-router-dom';
+import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import * as XLSX from 'xlsx';
 import '../App.css';
 
@@ -233,19 +233,57 @@ const DEFAULT_BLANK_ROWS = [];
 export default function SheetView() {
   const { id } = useParams();
   const location = useLocation();
+  const navigate = useNavigate();
 
   const isTemplate = id in TEMPLATE_DATA;
   const activeTemplate = isTemplate ? TEMPLATE_DATA[id] : null;
 
   const defaultTitle = location.state?.title || (activeTemplate ? activeTemplate.title : 'Nova Planilha');
 
-  // Estado dinâmico do título da planilha
   const [sheetTitle, setSheetTitle] = useState(defaultTitle);
   const [columns, setColumns] = useState(activeTemplate ? activeTemplate.columns : DEFAULT_BLANK_COLUMNS);
   const [rows, setRows] = useState(activeTemplate ? activeTemplate.rows : DEFAULT_BLANK_ROWS);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Carregar dados caso seja uma planilha já existente carregada do backend
+  // Estados dos Modais
+  const [isColModalOpen, setIsColModalOpen] = useState(false);
+  const [newColName, setNewColName] = useState('');
+
+  // Estado unificado para substituir alert e confirm nativos
+  const [modalConfig, setModalConfig] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    type: 'alert', // 'alert' ou 'confirm'
+    onConfirm: null
+  });
+
+  // Função auxiliar para disparar alertas estilizados
+  const showAlert = (title, message) => {
+    setModalConfig({
+      isOpen: true,
+      title,
+      message,
+      type: 'alert',
+      onConfirm: null
+    });
+  };
+
+  // Função auxiliar para disparar confirmações estilizadas
+  const showConfirm = (title, message, onConfirm) => {
+    setModalConfig({
+      isOpen: true,
+      title,
+      message,
+      type: 'confirm',
+      onConfirm
+    });
+  };
+
+  const closeModal = () => {
+    setModalConfig(prev => ({ ...prev, isOpen: false }));
+  };
+
   useEffect(() => {
     if (id && !isTemplate) {
       fetch(`http://localhost:5000/api/sheets/${id}`)
@@ -263,7 +301,7 @@ export default function SheetView() {
 
   const handleAddRow = () => {
     if (columns.length === 0) {
-      alert('Crie pelo menos uma coluna antes de adicionar linhas!');
+      showAlert('Atenção', 'Crie pelo menos uma coluna antes de adicionar linhas!');
       return;
     }
     const newEmptyRow = new Array(columns.length).fill('');
@@ -271,11 +309,37 @@ export default function SheetView() {
   };
 
   const handleAddColumn = () => {
-    const colName = prompt('Digite o nome da nova coluna:');
-    if (colName) {
-      setColumns([...columns, colName]);
-      setRows(rows.map(row => [...row, '']));
-    }
+    setNewColName('');
+    setIsColModalOpen(true);
+  };
+
+  const handleConfirmAddColumn = (e) => {
+    e.preventDefault();
+    const nameToUse = newColName.trim() || `Coluna ${columns.length + 1}`;
+    setColumns([...columns, nameToUse]);
+    setRows(rows.map(row => [...row, '']));
+    setIsColModalOpen(false);
+  };
+
+  const handleColumnNameChange = (colIndex, newName) => {
+    const updatedColumns = [...columns];
+    updatedColumns[colIndex] = newName;
+    setColumns(updatedColumns);
+  };
+
+  const handleRemoveColumn = (colIndex) => {
+    showConfirm(
+      'Remover Coluna',
+      'Tem certeza de que deseja remover esta coluna? Todos os dados contidos nela serão apagados.',
+      () => {
+        setColumns(columns.filter((_, idx) => idx !== colIndex));
+        setRows(rows.map(row => row.filter((_, idx) => idx !== colIndex)));
+      }
+    );
+  };
+
+  const handleRemoveRow = (rowIndex) => {
+    setRows(rows.filter((_, idx) => idx !== rowIndex));
   };
 
   const handleCellChange = (rowIndex, colIndex, value) => {
@@ -286,7 +350,7 @@ export default function SheetView() {
 
   const handleFinishTable = async () => {
     if (columns.length === 0) {
-      alert('A planilha precisa ter pelo menos uma coluna antes de ser finalizada!');
+      showAlert('Atenção', 'A planilha precisa ter pelo menos uma coluna antes de ser finalizada!');
       return;
     }
 
@@ -304,7 +368,6 @@ export default function SheetView() {
     setColumns(colunasPadronizadas);
     setRows(linhasPadronizadas);
 
-    // Gerar planilha e download (.xlsx)
     const tableData = [colunasPadronizadas, ...linhasPadronizadas];
     const worksheet = XLSX.utils.aoa_to_sheet(tableData);
 
@@ -327,14 +390,13 @@ export default function SheetView() {
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Planilha');
     XLSX.writeFile(workbook, fileName);
 
-    // Enviar dados para o Backend Node.js / MongoDB
     try {
       const storedUser = localStorage.getItem('user') || localStorage.getItem('user_data');
       const loggedUser = storedUser ? JSON.parse(storedUser) : null;
       const userId = loggedUser?._id || loggedUser?.id;
 
       if (!userId) {
-        alert('Atenção: Usuário não identificado. Faça login novamente para salvar a planilha no banco de dados.');
+        showAlert('Atenção', 'Usuário não identificado. Faça login novamente para salvar a planilha no banco de dados.');
         setIsSaving(false);
         return;
       }
@@ -370,16 +432,27 @@ export default function SheetView() {
       setIsSaving(false);
     }
 
-    alert(`🎉 Tabela finalizada com sucesso! Todos os dados foram padronizados e salvos em Downloads como "${fileName}".`);
+    showAlert('Sucesso! 🎉', `Tabela finalizada com sucesso! Todos os dados foram padronizados e salvos em Downloads como "${fileName}".`);
   };
 
   return (
     <div className="sheet-container">
       <div className="sheet-header">
         <div className="sheet-title-area" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <Link to="/" className="btn-back">← Voltar</Link>
+          <button 
+            onClick={() => navigate(-1)} 
+            className="btn-back"
+            style={{ 
+              border: 'none', 
+              background: 'transparent', 
+              cursor: 'pointer', 
+              fontSize: '1rem', 
+              fontWeight: 'bold' 
+            }}
+          >
+            ← Voltar
+          </button>
           
-          {/* Input editável para alterar o nome da planilha a qualquer momento */}
           <input
             type="text"
             value={sheetTitle}
@@ -426,9 +499,53 @@ export default function SheetView() {
           {columns.length > 0 && (
             <thead>
               <tr>
-                <th className="row-number">#</th>
+                <th className="row-number" style={{ width: '60px', textAlign: 'center' }}>#</th>
                 {columns.map((col, index) => (
-                  <th key={index}>{col}</th>
+                  <th key={index} style={{ padding: '0.3rem 0.5rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                      <input
+                        type="text"
+                        value={col}
+                        onChange={(e) => handleColumnNameChange(index, e.target.value)}
+                        placeholder={`Coluna ${index + 1}`}
+                        style={{
+                          fontWeight: 'bold',
+                          border: '1px solid transparent',
+                          backgroundColor: 'transparent',
+                          width: '100%',
+                          outline: 'none',
+                          fontSize: '0.9rem',
+                          color: '#0f172a',
+                          padding: '0.2rem 0.4rem',
+                          borderRadius: '4px'
+                        }}
+                        onFocus={(e) => {
+                          e.target.style.backgroundColor = '#ffffff';
+                          e.target.style.borderColor = '#2563eb';
+                        }}
+                        onBlur={(e) => {
+                          e.target.style.backgroundColor = 'transparent';
+                          e.target.style.borderColor = 'transparent';
+                        }}
+                      />
+                      <button
+                        onClick={() => handleRemoveColumn(index)}
+                        title="Excluir Coluna"
+                        style={{
+                          border: 'none',
+                          background: 'none',
+                          cursor: 'pointer',
+                          opacity: 0.6,
+                          fontSize: '0.75rem',
+                          padding: '0 0.2rem'
+                        }}
+                        onMouseEnter={(e) => (e.target.style.opacity = '1')}
+                        onMouseLeave={(e) => (e.target.style.opacity = '0.6')}
+                      >
+                        ❌
+                      </button>
+                    </div>
+                  </th>
                 ))}
               </tr>
             </thead>
@@ -466,7 +583,25 @@ export default function SheetView() {
             ) : (
               rows.map((row, rowIndex) => (
                 <tr key={rowIndex}>
-                  <td className="row-number">{rowIndex + 1}</td>
+                  <td className="row-number" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.2rem', padding: '0.5rem 0.4rem' }}>
+                    <span>{rowIndex + 1}</span>
+                    <button
+                      onClick={() => handleRemoveRow(rowIndex)}
+                      title="Excluir Linha"
+                      style={{
+                        border: 'none',
+                        background: 'none',
+                        cursor: 'pointer',
+                        fontSize: '0.75rem',
+                        opacity: 0.5,
+                        padding: 0
+                      }}
+                      onMouseEnter={(e) => (e.target.style.opacity = '1')}
+                      onMouseLeave={(e) => (e.target.style.opacity = '0.5')}
+                    >
+                      🗑️
+                    </button>
+                  </td>
                   {row.map((cell, colIndex) => (
                     <td key={colIndex}>
                       <input
@@ -484,6 +619,150 @@ export default function SheetView() {
           </tbody>
         </table>
       </div>
+
+      {/* 1. MODAL DE ADICIONAR COLUNA */}
+      {isColModalOpen && (
+        <div style={{
+          position: 'fixed',
+          top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(15, 23, 42, 0.55)',
+          backdropFilter: 'blur(4px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            backgroundColor: '#ffffff',
+            padding: '1.75rem',
+            borderRadius: '12px',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+            width: '100%',
+            maxWidth: '400px'
+          }}>
+            <h3 style={{ margin: '0 0 0.5rem 0', color: '#0f172a', fontSize: '1.25rem' }}>
+              Nova Coluna
+            </h3>
+            <p style={{ margin: '0 0 1.25rem 0', color: '#64748b', fontSize: '0.9rem' }}>
+              Digite o nome para identificar esta coluna na planilha.
+            </p>
+
+            <form onSubmit={handleConfirmAddColumn}>
+              <input
+                type="text"
+                autoFocus
+                value={newColName}
+                onChange={(e) => setNewColName(e.target.value)}
+                placeholder={`Ex: Coluna ${columns.length + 1}`}
+                style={{
+                  width: '100%',
+                  padding: '0.65rem 0.85rem',
+                  borderRadius: '8px',
+                  border: '1px solid #cbd5e1',
+                  outline: 'none',
+                  fontSize: '0.95rem',
+                  boxSizing: 'border-box',
+                  marginBottom: '1.25rem'
+                }}
+              />
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+                <button
+                  type="button"
+                  onClick={() => setIsColModalOpen(false)}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    borderRadius: '6px',
+                    border: '1px solid #cbd5e1',
+                    backgroundColor: '#ffffff',
+                    color: '#475569',
+                    cursor: 'pointer',
+                    fontWeight: '500'
+                  }}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  style={{
+                    padding: '0.5rem 1rem',
+                    borderRadius: '6px',
+                    border: 'none',
+                    backgroundColor: '#2563eb',
+                    color: '#ffffff',
+                    cursor: 'pointer',
+                    fontWeight: '600'
+                  }}
+                >
+                  Criar Coluna
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 2. MODAL GERAL (ALERT / CONFIRM CUSTOMIZADO) */}
+      {modalConfig.isOpen && (
+        <div style={{
+          position: 'fixed',
+          top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(15, 23, 42, 0.55)',
+          backdropFilter: 'blur(4px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 1100
+        }}>
+          <div style={{
+            backgroundColor: '#ffffff',
+            padding: '1.75rem',
+            borderRadius: '12px',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+            width: '100%',
+            maxWidth: '420px'
+          }}>
+            <h3 style={{ margin: '0 0 0.5rem 0', color: '#0f172a', fontSize: '1.2rem', fontWeight: '600' }}>
+              {modalConfig.title}
+            </h3>
+            <p style={{ margin: '0 0 1.5rem 0', color: '#475569', fontSize: '0.95rem', lineHeight: '1.4' }}>
+              {modalConfig.message}
+            </p>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+              {modalConfig.type === 'confirm' && (
+                <button
+                  onClick={closeModal}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    borderRadius: '6px',
+                    border: '1px solid #cbd5e1',
+                    backgroundColor: '#ffffff',
+                    color: '#475569',
+                    cursor: 'pointer',
+                    fontWeight: '500'
+                  }}
+                >
+                  Cancelar
+                </button>
+              )}
+              <button
+                onClick={() => {
+                  if (modalConfig.onConfirm) modalConfig.onConfirm();
+                  closeModal();
+                }}
+                style={{
+                  padding: '0.5rem 1rem',
+                  borderRadius: '6px',
+                  border: 'none',
+                  backgroundColor: modalConfig.type === 'confirm' ? '#dc2626' : '#2563eb',
+                  color: '#ffffff',
+                  cursor: 'pointer',
+                  fontWeight: '600'
+                }}
+              >
+                {modalConfig.type === 'confirm' ? 'Confirmar' : 'OK'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

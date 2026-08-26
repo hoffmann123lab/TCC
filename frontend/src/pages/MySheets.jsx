@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 export default function MySheets() {
@@ -7,13 +7,16 @@ export default function MySheets() {
   const [selectedSheet, setSelectedSheet] = useState(null);
   const [userName, setUserName] = useState('');
 
+  // Estados para substituir alerts e confirms nativos
+  const [errorMessage, setErrorMessage] = useState('');
+  const [sheetToDelete, setSheetToDelete] = useState(null); // Armazena planilha para confirmação
+
   const navigate = useNavigate();
 
   useEffect(() => {
     async function fetchMySheets() {
       try {
         setLoading(true);
-        // Busca suporte flexível a ambas as chaves do localStorage
         const storedUser = localStorage.getItem('user_data') || localStorage.getItem('user');
         const loggedUser = storedUser ? JSON.parse(storedUser) : null;
         const userId = loggedUser?._id || loggedUser?.id;
@@ -22,7 +25,6 @@ export default function MySheets() {
           setUserName(loggedUser.name);
         }
 
-        // Se não houver ID de usuário logado, garante que a lista fica vazia
         if (!userId) {
           console.warn('Nenhum usuário logado encontrado no localStorage.');
           setSheets([]);
@@ -30,7 +32,6 @@ export default function MySheets() {
           return;
         }
 
-        // Requisição enviando o userId do usuário logado
         const response = await fetch(`http://localhost:5000/api/sheets?userId=${userId}`);
         
         if (response.ok) {
@@ -51,6 +52,38 @@ export default function MySheets() {
     fetchMySheets();
   }, []);
 
+  // Executa a exclusão após o usuário confirmar no modal
+  const confirmDeleteSheet = async () => {
+    if (!sheetToDelete) return;
+
+    const { id: sheetId } = sheetToDelete;
+    setErrorMessage('');
+
+    try {
+      const response = await fetch(`http://localhost:5000/api/sheets/${sheetId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        setSheets((prevSheets) => prevSheets.filter((sheet) => (sheet._id || sheet.id) !== sheetId));
+        if (selectedSheet && (selectedSheet._id || selectedSheet.id) === sheetId) {
+          setSelectedSheet(null);
+        }
+      } else {
+        setErrorMessage('Erro ao excluir a planilha no servidor.');
+      }
+    } catch (error) {
+      console.error('Erro ao conectar com a API de exclusão:', error);
+      setErrorMessage('Não foi possível conectar ao servidor para excluir a planilha.');
+    } finally {
+      setSheetToDelete(null); // Fecha o modal de confirmação
+    }
+  };
+
+  const handleEditSheet = (sheetId) => {
+    navigate(`/sheet/${sheetId}`);
+  };
+
   const renderCellContent = (cell) => {
     if (cell === null || cell === undefined) return '-';
     if (typeof cell === 'object') {
@@ -68,12 +101,35 @@ export default function MySheets() {
 
   return (
     <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto', fontFamily: 'sans-serif' }}>
-      {/* CABEÇALHO */}
+      
+      {/* Banner para alertas de erro */}
+      {errorMessage && (
+        <div style={{
+          padding: '0.75rem 1rem',
+          backgroundColor: '#fef2f2',
+          color: '#991b1b',
+          borderRadius: '8px',
+          border: '1px solid #fecaca',
+          marginBottom: '1.5rem',
+          display: 'flex',
+          justify: 'space-between',
+          alignItems: 'center'
+        }}>
+          <span>⚠️ {errorMessage}</span>
+          <button 
+            onClick={() => setErrorMessage('')}
+            style={{ background: 'none', border: 'none', color: '#991b1b', cursor: 'pointer', fontWeight: 'bold' }}
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '1rem' }}>
         <div>
           <h1 style={{ margin: 0, color: '#0f172a', fontSize: '1.8rem' }}>📊 Minhas Planilhas</h1>
           <p style={{ color: '#64748b', marginTop: '0.25rem', fontSize: '0.95rem' }}>
-            {userName ? `Olá, ${userName}! ` : ''}Gerencie e visualize suas planilhas criadas no SheetHub.
+            {userName ? `Olá, ${userName}! ` : ''}Gerencie e visualize suas planilhas criadas.
           </p>
         </div>
 
@@ -96,13 +152,11 @@ export default function MySheets() {
         )}
       </div>
 
-      {/* ESTADO DE CARREGAMENTO */}
       {loading ? (
         <div style={{ textAlign: 'center', padding: '4rem 0', color: '#64748b' }}>
           <p style={{ fontSize: '1.1rem' }}>⌛ A carregar suas planilhas...</p>
         </div>
       ) : sheets.length === 0 ? (
-        /* ESTADO VAZIO */
         <div
           style={{
             textAlign: 'center',
@@ -136,67 +190,132 @@ export default function MySheets() {
           </button>
         </div>
       ) : (
-        /* LISTAGEM DOS CARDS */
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
-          {sheets.map((sheet) => (
-            <div
-              key={sheet._id || sheet.id}
-              style={{
-                backgroundColor: '#fff',
-                padding: '1.5rem',
-                borderRadius: '10px',
-                border: '1px solid #e2e8f0',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.04)',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between'
-              }}
-            >
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                  <span style={{ fontSize: '1.5rem' }}>📊</span>
-                  <h3 style={{ margin: 0, color: '#0f172a', fontSize: '1.1rem', wordBreak: 'break-word' }}>
-                    {sheet.title}
-                  </h3>
-                </div>
-                <p style={{ color: '#64748b', fontSize: '0.85rem', margin: '0 0 1rem 0', minHeight: '2.5em' }}>
-                  {sheet.description || 'Sem descrição cadastrada.'}
-                </p>
-              </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.5rem' }}>
+          {sheets.map((sheet) => {
+            const currentId = sheet._id || sheet.id;
 
-              <div>
-                <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
-                  <span style={{ backgroundColor: '#f1f5f9', color: '#475569', padding: '0.25rem 0.6rem', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 'bold' }}>
-                    {sheet.columns?.length || 0} Colunas
-                  </span>
-                  <span style={{ backgroundColor: '#e0f2fe', color: '#0369a1', padding: '0.25rem 0.6rem', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 'bold' }}>
-                    {sheet.rows?.length || 0} Linhas
-                  </span>
+            return (
+              <div
+                key={currentId}
+                style={{
+                  backgroundColor: '#fff',
+                  padding: '1.5rem',
+                  borderRadius: '10px',
+                  border: '1px solid #e2e8f0',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.04)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justify: 'space-between'
+                }}
+              >
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                    <span style={{ fontSize: '1.5rem' }}>📊</span>
+                    <h3 style={{ margin: 0, color: '#0f172a', fontSize: '1.1rem', wordBreak: 'break-word' }}>
+                      {sheet.title || 'Planilha Sem Título'}
+                    </h3>
+                  </div>
+                  <p style={{ color: '#64748b', fontSize: '0.85rem', margin: '0 0 1rem 0', minHeight: '2.5em' }}>
+                    {sheet.description || 'Sem descrição cadastrada.'}
+                  </p>
                 </div>
 
-                <button
-                  onClick={() => setSelectedSheet(sheet)}
-                  style={{
-                    width: '100%',
-                    backgroundColor: '#0f172a',
-                    color: '#fff',
-                    border: 'none',
-                    padding: '0.6rem',
-                    borderRadius: '6px',
-                    fontWeight: 'bold',
-                    fontSize: '0.85rem',
-                    cursor: 'pointer'
-                  }}
-                >
-                  👁️ Abrir Planilha
-                </button>
+                <div>
+                  <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+                    <span style={{ backgroundColor: '#f1f5f9', color: '#475569', padding: '0.25rem 0.6rem', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 'bold' }}>
+                      {sheet.columns?.length || 0} Colunas
+                    </span>
+                    <span style={{ backgroundColor: '#e0f2fe', color: '#0369a1', padding: '0.25rem 0.6rem', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 'bold' }}>
+                      {sheet.rows?.length || 0} Linhas
+                    </span>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <button
+                      onClick={() => setSelectedSheet(sheet)}
+                      title="Visualização rápida"
+                      style={{
+                        flex: 1,
+                        backgroundColor: '#0f172a',
+                        color: '#fff',
+                        border: 'none',
+                        padding: '0.55rem',
+                        borderRadius: '6px',
+                        fontWeight: 'bold',
+                        fontSize: '0.8rem',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      👁️ Ver
+                    </button>
+                    <button
+                      onClick={() => handleEditSheet(currentId)}
+                      title="Editar planilha na grade"
+                      style={{
+                        flex: 1,
+                        backgroundColor: '#2563eb',
+                        color: '#fff',
+                        border: 'none',
+                        padding: '0.55rem',
+                        borderRadius: '6px',
+                        fontWeight: 'bold',
+                        fontSize: '0.8rem',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      ✏️ Editar
+                    </button>
+                    <button
+                      onClick={() => setSheetToDelete({ id: currentId, title: sheet.title })}
+                      title="Excluir planilha"
+                      style={{
+                        backgroundColor: '#fecdd3',
+                        color: '#9f1239',
+                        border: '1px solid #fda4af',
+                        padding: '0.55rem 0.75rem',
+                        borderRadius: '6px',
+                        fontWeight: 'bold',
+                        fontSize: '0.8rem',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      🗑️
+                    </button>
+                  </div>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
-      {/* MODAL PARA VISUALIZAR A PLANILHA */}
+      {/* Modal de Confirmação de Exclusão */}
+      {sheetToDelete && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15, 23, 42, 0.6)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1100, padding: '1rem' }}>
+          <div style={{ backgroundColor: '#fff', padding: '1.5rem 2rem', borderRadius: '12px', width: '100%', maxWidth: '420px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)' }}>
+            <h3 style={{ margin: '0 0 0.5rem 0', color: '#0f172a' }}>⚠️ Confirmar Exclusão</h3>
+            <p style={{ color: '#475569', fontSize: '0.95rem', lineHeight: '1.4', margin: '0 0 1.5rem 0' }}>
+              Tem certeza que deseja excluir a planilha <strong>"{sheetToDelete.title || 'sem título'}"</strong>? Esta ação não pode ser desfeita.
+            </p>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+              <button
+                onClick={() => setSheetToDelete(null)}
+                style={{ backgroundColor: '#f1f5f9', color: '#475569', border: 'none', padding: '0.55rem 1rem', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer' }}
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={confirmDeleteSheet}
+                style={{ backgroundColor: '#e11d48', color: '#fff', border: 'none', padding: '0.55rem 1rem', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer' }}
+              >
+                Sim, Excluir
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Visualização da Planilha */}
       {selectedSheet && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15, 23, 42, 0.6)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, padding: '1rem' }}>
           <div style={{ backgroundColor: '#fff', padding: '2rem', borderRadius: '12px', width: '100%', maxWidth: '900px', maxHeight: '85vh', overflowY: 'auto', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)' }}>
@@ -205,9 +324,21 @@ export default function MySheets() {
                 <h2 style={{ margin: 0, color: '#0f172a' }}>📌 {selectedSheet.title}</h2>
                 {selectedSheet.description && <p style={{ margin: '0.25rem 0 0 0', color: '#64748b', fontSize: '0.85rem' }}>{selectedSheet.description}</p>}
               </div>
-              <button onClick={() => setSelectedSheet(null)} style={{ backgroundColor: '#cbd5e1', color: '#334155', border: 'none', padding: '0.5rem 0.8rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>
-                ✕ Fechar
-              </button>
+
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <button
+                  onClick={() => handleEditSheet(selectedSheet._id || selectedSheet.id)}
+                  style={{ backgroundColor: '#2563eb', color: '#fff', border: 'none', padding: '0.5rem 0.8rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.85rem' }}
+                >
+                  ✏️ Editar no Editor
+                </button>
+                <button
+                  onClick={() => setSelectedSheet(null)}
+                  style={{ backgroundColor: '#cbd5e1', color: '#334155', border: 'none', padding: '0.5rem 0.8rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.85rem' }}
+                >
+                  ✕ Fechar
+                </button>
+              </div>
             </div>
 
             {(!selectedSheet.columns || selectedSheet.columns.length === 0) && (!selectedSheet.rows || selectedSheet.rows.length === 0) ? (

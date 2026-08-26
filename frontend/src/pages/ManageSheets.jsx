@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const ALLOWED_ADMIN_EMAILS = [
@@ -12,6 +12,9 @@ export default function ManageSheets() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFolder, setSelectedFolder] = useState(null);
   const [selectedSheet, setSelectedSheet] = useState(null);
+  
+  // Estado para substituir alerts bloqueantes
+  const [errorMessage, setErrorMessage] = useState('');
 
   const navigate = useNavigate();
 
@@ -23,8 +26,8 @@ export default function ManageSheets() {
         // 1. Busca os dados salvos no localStorage
         const storedData = localStorage.getItem('user_data') || localStorage.getItem('user');
         if (!storedData) {
-          alert('Sessão expirada. Faça login novamente.');
-          navigate('/');
+          setErrorMessage('Sessão expirada. Redirecionando para o login...');
+          setTimeout(() => navigate('/'), 2000);
           return;
         }
 
@@ -37,8 +40,8 @@ export default function ManageSheets() {
 
         // 2. Valida se o e-mail pertence aos administradores permitidos
         if (!ALLOWED_ADMIN_EMAILS.includes(userEmail)) {
-          alert('Acesso restrito a administradores autorizados!');
-          navigate('/dashboard');
+          setErrorMessage('Acesso restrito a administradores autorizados! Redirecionando...');
+          setTimeout(() => navigate('/dashboard'), 2000);
           return;
         }
 
@@ -50,8 +53,8 @@ export default function ManageSheets() {
           setUserFolders(Array.isArray(data) ? data : []);
         } else {
           const errData = await response.json().catch(() => ({}));
-          alert(errData.message || 'Você não tem permissão para acessar estas pastas.');
-          navigate('/dashboard');
+          setErrorMessage(errData.message || 'Você não tem permissão para acessar estas pastas.');
+          setTimeout(() => navigate('/dashboard'), 2000);
         }
       } catch (error) {
         console.error('Erro ao buscar pastas no servidor:', error);
@@ -72,7 +75,31 @@ export default function ManageSheets() {
   );
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
+    <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto', fontFamily: 'sans-serif' }}>
+      
+      {/* Banner de erro/aviso no topo */}
+      {errorMessage && (
+        <div style={{
+          padding: '0.75rem 1rem',
+          backgroundColor: '#fef2f2',
+          color: '#991b1b',
+          borderRadius: '8px',
+          border: '1px solid #fecaca',
+          marginBottom: '1.5rem',
+          display: 'flex',
+          justify: 'space-between',
+          alignItems: 'center'
+        }}>
+          <span>⚠️ {errorMessage}</span>
+          <button 
+            onClick={() => setErrorMessage('')}
+            style={{ background: 'none', border: 'none', color: '#991b1b', cursor: 'pointer', fontWeight: 'bold' }}
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
         <div>
           <h1 style={{ margin: 0, color: '#0f172a' }}>📁 Pastas dos Utilizadores</h1>
@@ -91,7 +118,7 @@ export default function ManageSheets() {
       </div>
 
       {loading ? (
-        <p>A carregar pastas do banco de dados...</p>
+        <p style={{ color: '#64748b' }}>A carregar pastas do banco de dados...</p>
       ) : userFolders.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '3rem', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
           <p style={{ fontSize: '1.2rem', color: '#64748b', margin: 0 }}>Nenhuma pasta foi encontrada.</p>
