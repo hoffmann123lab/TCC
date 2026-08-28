@@ -1,5 +1,13 @@
 import mongoose from 'mongoose';
 
+const commentSchema = new mongoose.Schema(
+  {
+    author: { type: String, required: true },
+    text: { type: String, required: true }
+  },
+  { timestamps: true }
+);
+
 const sheetSchema = new mongoose.Schema(
   {
     title: {
@@ -17,7 +25,6 @@ const sheetSchema = new mongoose.Schema(
       ref: 'User',
       required: true
     },
-    // 🟢 Tipagem Mixed permite salvar tanto Strings quanto Objetos sem dar erro no Mongoose
     columns: {
       type: mongoose.Schema.Types.Mixed,
       default: []
@@ -25,7 +32,8 @@ const sheetSchema = new mongoose.Schema(
     rows: {
       type: mongoose.Schema.Types.Mixed,
       default: []
-    }
+    },
+    comments: [commentSchema]
   },
   {
     timestamps: true

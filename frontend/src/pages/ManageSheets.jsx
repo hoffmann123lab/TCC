@@ -16,6 +16,11 @@ export default function ManageSheets() {
   // Estado para substituir alerts bloqueantes
   const [errorMessage, setErrorMessage] = useState('');
 
+  // 🟢 ESTADOS PARA A GESTÃO DE COMENTÁRIOS
+  const [comments, setComments] = useState([]);
+  const [newCommentText, setNewCommentText] = useState('');
+  const [isSendingComment, setIsSendingComment] = useState(false);
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -67,6 +72,58 @@ export default function ManageSheets() {
     fetchFolders();
   }, [navigate]);
 
+  // 🟢 QUANDO O ADM ABRE UMA PLANILHA, CARREGA OS COMENTÁRIOS EXISTENTES
+  const handleOpenSheet = (sheet) => {
+    setSelectedSheet(sheet);
+    setComments(sheet.comments || []);
+    setNewCommentText('');
+  };
+
+  // 🟢 FUNÇÃO PARA O ADMINISTRADOR ENVIAR UM COMENTÁRIO
+  const handleSendComment = async (e) => {
+    e.preventDefault();
+    if (!newCommentText.trim() || !selectedSheet) return;
+
+    const sheetId = selectedSheet._id || selectedSheet.id;
+
+    if (!sheetId) {
+      setErrorMessage('Erro ao identificar o ID da planilha.');
+      return;
+    }
+
+    setIsSendingComment(true);
+
+    try {
+      const storedData = localStorage.getItem('user_data') || localStorage.getItem('user');
+      const parsedData = storedData ? JSON.parse(storedData) : null;
+      const user = parsedData?.user || parsedData;
+      const adminName = user?.name || 'Administrador';
+
+      const response = await fetch(`http://localhost:5000/api/sheets/${sheetId}/comments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          author: adminName,
+          text: newCommentText
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setComments(data.comments);
+        setNewCommentText('');
+      } else {
+        setErrorMessage(data.message || 'Erro ao enviar o comentário.');
+      }
+    } catch (error) {
+      console.error('Erro ao salvar comentário:', error);
+      setErrorMessage('Erro de conexão ao tentar salvar o comentário.');
+    } finally {
+      setIsSendingComment(false);
+    }
+  };
+
   const filteredFolders = userFolders.filter(
     (folder) =>
       folder.folderName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -87,7 +144,7 @@ export default function ManageSheets() {
           border: '1px solid #fecaca',
           marginBottom: '1.5rem',
           display: 'flex',
-          justify: 'space-between',
+          justifyContent: 'space-between',
           alignItems: 'center'
         }}>
           <span>⚠️ {errorMessage}</span>
@@ -181,7 +238,7 @@ export default function ManageSheets() {
                         <td style={{ padding: '0.75rem', fontWeight: 'bold', color: '#1e293b' }}>📊 {sheet.title}</td>
                         <td style={{ padding: '0.75rem', color: '#475569' }}>{sheet.rows?.length || 0}</td>
                         <td style={{ padding: '0.75rem', textAlign: 'center' }}>
-                          <button onClick={() => setSelectedSheet(sheet)} style={{ backgroundColor: '#2563eb', color: '#fff', border: 'none', padding: '0.3rem 0.7rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' }}>
+                          <button onClick={() => handleOpenSheet(sheet)} style={{ backgroundColor: '#2563eb', color: '#fff', border: 'none', padding: '0.3rem 0.7rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' }}>
                             👁️ Abrir Planilha
                           </button>
                         </td>
@@ -195,17 +252,19 @@ export default function ManageSheets() {
         </>
       )}
 
+      {/* MODAL DE VISUALIZAÇÃO DA PLANILHA COM ÁREA DE COMENTÁRIOS */}
       {selectedSheet && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
-          <div style={{ backgroundColor: '#fff', padding: '2rem', borderRadius: '8px', width: '90%', maxWidth: '800px', maxHeight: '80vh', overflowY: 'auto' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', borderBottom: '1px solid #e2e8f0' }}>
+          <div style={{ backgroundColor: '#fff', padding: '2rem', borderRadius: '8px', width: '90%', maxWidth: '850px', maxHeight: '85vh', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.5rem' }}>
               <h2 style={{ margin: 0, color: '#0f172a' }}>📌 {selectedSheet.title}</h2>
               <button onClick={() => setSelectedSheet(null)} style={{ backgroundColor: '#94a3b8', color: '#fff', border: 'none', padding: '0.4rem 0.8rem', borderRadius: '4px', cursor: 'pointer' }}>
                 ✕ Fechar
               </button>
             </div>
 
-            <div style={{ overflowX: 'auto', border: '1px solid #e2e8f0', borderRadius: '6px' }}>
+            {/* TABELA DA PLANILHA */}
+            <div style={{ overflowX: 'auto', border: '1px solid #e2e8f0', borderRadius: '6px', marginBottom: '1.5rem' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                 <thead>
                   <tr style={{ backgroundColor: '#f1f5f9', borderBottom: '1px solid #cbd5e1' }}>
@@ -239,6 +298,73 @@ export default function ManageSheets() {
                 </tbody>
               </table>
             </div>
+
+            {/* 💬 SEÇÃO DE COMENTÁRIOS DO ADMINISTRADOR */}
+            <div style={{ backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '1.25rem' }}>
+              <h3 style={{ margin: '0 0 1rem 0', color: '#0f172a', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                💬 Comentários e Observações do Administrador
+              </h3>
+
+              {/* LISTA DE COMENTÁRIOS */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxHeight: '200px', overflowY: 'auto', marginBottom: '1rem' }}>
+                {comments.length === 0 ? (
+                  <p style={{ margin: 0, color: '#94a3b8', fontSize: '0.85rem', fontStyle: 'italic' }}>
+                    Nenhum comentário registrado nesta planilha ainda.
+                  </p>
+                ) : (
+                  comments.map((comment, index) => (
+                    <div key={index} style={{ backgroundColor: '#ffffff', padding: '0.75rem', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+                        <strong style={{ fontSize: '0.85rem', color: '#1e293b' }}>{comment.author}</strong>
+                        {comment.createdAt && (
+                          <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                            {new Date(comment.createdAt).toLocaleDateString('pt-BR')} às {new Date(comment.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        )}
+                      </div>
+                      <p style={{ margin: 0, fontSize: '0.85rem', color: '#334155', lineHeight: '1.4' }}>
+                        {comment.text}
+                      </p>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {/* FORMULÁRIO PARA ENVIAR COMENTÁRIO */}
+              <form onSubmit={handleSendComment} style={{ display: 'flex', gap: '0.5rem' }}>
+                <input
+                  type="text"
+                  placeholder="Escreva uma observação ou instrução para este usuário..."
+                  value={newCommentText}
+                  onChange={(e) => setNewCommentText(e.target.value)}
+                  style={{
+                    flex: 1,
+                    padding: '0.6rem 0.8rem',
+                    borderRadius: '6px',
+                    border: '1px solid #cbd5e1',
+                    outline: 'none',
+                    fontSize: '0.85rem'
+                  }}
+                />
+                <button
+                  type="submit"
+                  disabled={isSendingComment}
+                  style={{
+                    padding: '0.6rem 1rem',
+                    backgroundColor: '#2563eb',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '6px',
+                    fontWeight: 'bold',
+                    fontSize: '0.85rem',
+                    cursor: 'pointer'
+                  }}
+                >
+                  {isSendingComment ? 'Enviando...' : 'Comentar'}
+                </button>
+              </form>
+            </div>
+
           </div>
         </div>
       )}

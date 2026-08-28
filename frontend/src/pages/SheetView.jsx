@@ -3,7 +3,7 @@ import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import * as XLSX from 'xlsx';
 import '../App.css';
 
-// 🌐 FUNÇÃO ULTRA COMPLETA DE PADRONIZAÇÃO E LIMPEZA
+// 🌐 FUNÇÃO DE PADRONIZAÇÃO E LIMPEZA
 function normalizarTexto(valor, nomeColuna = '') {
   if (valor === null || valor === undefined) return '';
 
@@ -183,7 +183,7 @@ function normalizarTexto(valor, nomeColuna = '') {
     .join(' ');
 }
 
-// MODELOS PRONTOS DE TEMPLATES
+// TEMPLATES PRONTOS
 const TEMPLATE_DATA = {
   'temp-escola': {
     title: '🎓 Diário de Classe',
@@ -227,8 +227,28 @@ const TEMPLATE_DATA = {
   }
 };
 
-const DEFAULT_BLANK_COLUMNS = [];
-const DEFAULT_BLANK_ROWS = [];
+const formatInitialColumns = (cols) => cols.map((col) => typeof col === 'object' && col !== null ? col : { id: crypto.randomUUID(), name: String(col) });
+
+const formatInitialRows = (rows) =>
+  rows.map((row) => {
+    let cellsArray = [];
+    if (Array.isArray(row)) {
+      cellsArray = row;
+    } else if (row && typeof row === 'object' && Array.isArray(row.cells)) {
+      cellsArray = row.cells;
+    } else if (row && typeof row === 'object') {
+      cellsArray = Object.values(row);
+    }
+
+    return {
+      id: crypto.randomUUID(),
+      cells: cellsArray.map((cell) =>
+        typeof cell === 'object' && cell !== null
+          ? { value: cell.value || '', comment: cell.comment || '' }
+          : { value: cell || '', comment: '' }
+      )
+    };
+  });
 
 export default function SheetView() {
   const { id } = useParams();
@@ -241,24 +261,32 @@ export default function SheetView() {
   const defaultTitle = location.state?.title || (activeTemplate ? activeTemplate.title : 'Nova Planilha');
 
   const [sheetTitle, setSheetTitle] = useState(defaultTitle);
-  const [columns, setColumns] = useState(activeTemplate ? activeTemplate.columns : DEFAULT_BLANK_COLUMNS);
-  const [rows, setRows] = useState(activeTemplate ? activeTemplate.rows : DEFAULT_BLANK_ROWS);
+  const [description, setDescription] = useState(''); // 📝 ESTADO PARA OBSERVAÇÕES/EXPLICAÇÕES DO GERENTE
+  const [columns, setColumns] = useState(activeTemplate ? formatInitialColumns(activeTemplate.columns) : []);
+  const [rows, setRows] = useState(activeTemplate ? formatInitialRows(activeTemplate.rows) : []);
   const [isSaving, setIsSaving] = useState(false);
 
   // Estados dos Modais
   const [isColModalOpen, setIsColModalOpen] = useState(false);
   const [newColName, setNewColName] = useState('');
 
-  // Estado unificado para substituir alert e confirm nativos
+  // Estado para Modal de Comentário da Célula
+  const [commentModal, setCommentModal] = useState({
+    isOpen: false,
+    rowId: null,
+    colIndex: null,
+    text: ''
+  });
+
+  // Estado para Alertas e Confirmações
   const [modalConfig, setModalConfig] = useState({
     isOpen: false,
     title: '',
     message: '',
-    type: 'alert', // 'alert' ou 'confirm'
+    type: 'alert',
     onConfirm: null
   });
 
-  // Função auxiliar para disparar alertas estilizados
   const showAlert = (title, message) => {
     setModalConfig({
       isOpen: true,
@@ -269,7 +297,6 @@ export default function SheetView() {
     });
   };
 
-  // Função auxiliar para disparar confirmações estilizadas
   const showConfirm = (title, message, onConfirm) => {
     setModalConfig({
       isOpen: true,
@@ -291,8 +318,9 @@ export default function SheetView() {
         .then((data) => {
           if (data) {
             if (data.title) setSheetTitle(data.title);
-            if (data.columns) setColumns(data.columns);
-            if (data.rows) setRows(data.rows);
+            if (data.description) setDescription(data.description);
+            if (data.columns) setColumns(formatInitialColumns(data.columns));
+            if (data.rows) setRows(formatInitialRows(data.rows));
           }
         })
         .catch((err) => console.error('Erro ao buscar planilha existente:', err));
@@ -304,8 +332,11 @@ export default function SheetView() {
       showAlert('Atenção', 'Crie pelo menos uma coluna antes de adicionar linhas!');
       return;
     }
-    const newEmptyRow = new Array(columns.length).fill('');
-    setRows([...rows, newEmptyRow]);
+    const newRow = {
+      id: crypto.randomUUID(),
+      cells: new Array(columns.length).fill(null).map(() => ({ value: '', comment: '' }))
+    };
+    setRows(prev => [...prev, newRow]);
   };
 
   const handleAddColumn = () => {
@@ -316,15 +347,14 @@ export default function SheetView() {
   const handleConfirmAddColumn = (e) => {
     e.preventDefault();
     const nameToUse = newColName.trim() || `Coluna ${columns.length + 1}`;
-    setColumns([...columns, nameToUse]);
-    setRows(rows.map(row => [...row, '']));
+
+    setColumns(prev => [...prev, { id: crypto.randomUUID(), name: nameToUse }]);
+    setRows(prev => prev.map(row => ({ ...row, cells: [...row.cells, { value: '', comment: '' }] })));
     setIsColModalOpen(false);
   };
 
-  const handleColumnNameChange = (colIndex, newName) => {
-    const updatedColumns = [...columns];
-    updatedColumns[colIndex] = newName;
-    setColumns(updatedColumns);
+  const handleColumnNameChange = (colId, newName) => {
+    setColumns(prev => prev.map(col => col.id === colId ? { ...col, name: newName } : col));
   };
 
   const handleRemoveColumn = (colIndex) => {
@@ -332,20 +362,53 @@ export default function SheetView() {
       'Remover Coluna',
       'Tem certeza de que deseja remover esta coluna? Todos os dados contidos nela serão apagados.',
       () => {
-        setColumns(columns.filter((_, idx) => idx !== colIndex));
-        setRows(rows.map(row => row.filter((_, idx) => idx !== colIndex)));
+        setColumns(prev => prev.filter((_, idx) => idx !== colIndex));
+        setRows(prev => prev.map(row => ({
+          ...row,
+          cells: row.cells.filter((_, idx) => idx !== colIndex)
+        })));
       }
     );
   };
 
-  const handleRemoveRow = (rowIndex) => {
-    setRows(rows.filter((_, idx) => idx !== rowIndex));
+  const handleRemoveRow = (rowId) => {
+    setRows(prev => prev.filter(row => row.id !== rowId));
   };
 
-  const handleCellChange = (rowIndex, colIndex, value) => {
-    const updatedRows = [...rows];
-    updatedRows[rowIndex][colIndex] = value;
-    setRows(updatedRows);
+  const handleCellChange = (rowId, colIndex, value) => {
+    setRows(prev => prev.map(row => {
+      if (row.id === rowId) {
+        const updatedCells = [...row.cells];
+        updatedCells[colIndex] = { ...updatedCells[colIndex], value };
+        return { ...row, cells: updatedCells };
+      }
+      return row;
+    }));
+  };
+
+  const handleOpenCommentModal = (rowId, colIndex, currentComment) => {
+    setCommentModal({
+      isOpen: true,
+      rowId,
+      colIndex,
+      text: currentComment || ''
+    });
+  };
+
+  const handleSaveComment = (e) => {
+    e.preventDefault();
+    const { rowId, colIndex, text } = commentModal;
+
+    setRows(prev => prev.map(row => {
+      if (row.id === rowId) {
+        const updatedCells = [...row.cells];
+        updatedCells[colIndex] = { ...updatedCells[colIndex], comment: text.trim() };
+        return { ...row, cells: updatedCells };
+      }
+      return row;
+    }));
+
+    setCommentModal({ isOpen: false, rowId: null, colIndex: null, text: '' });
   };
 
   const handleFinishTable = async () => {
@@ -356,26 +419,44 @@ export default function SheetView() {
 
     setIsSaving(true);
 
-    const colunasPadronizadas = columns.map(col => normalizarTexto(col));
+    const colunasPadronizadasNames = columns.map(col => normalizarTexto(typeof col === 'object' ? col.name : col));
 
-    const linhasPadronizadas = rows.map(row => {
-      return row.map((celula, colIndex) => {
-        const nomeColuna = colunasPadronizadas[colIndex] || '';
-        return normalizarTexto(celula, nomeColuna);
+    const linhasPadronizadasValues = rows.map(row => {
+      return row.cells.map((celula, colIndex) => {
+        const nomeColuna = colunasPadronizadasNames[colIndex] || '';
+        return {
+          value: normalizarTexto(celula.value, nomeColuna),
+          comment: celula.comment || ''
+        };
       });
     });
 
-    setColumns(colunasPadronizadas);
-    setRows(linhasPadronizadas);
+    // 1. Gera o Download .xlsx
+    const rawData = [
+      colunasPadronizadasNames,
+      ...linhasPadronizadasValues.map(row => row.map(cell => cell.value))
+    ];
 
-    const tableData = [colunasPadronizadas, ...linhasPadronizadas];
-    const worksheet = XLSX.utils.aoa_to_sheet(tableData);
+    const worksheet = XLSX.utils.aoa_to_sheet(rawData);
 
-    const colWidths = colunasPadronizadas.map((col, colIndex) => {
+    linhasPadronizadasValues.forEach((row, rowIndex) => {
+      row.forEach((cell, colIndex) => {
+        if (cell.comment) {
+          const cellAddress = XLSX.utils.encode_cell({ r: rowIndex + 1, c: colIndex });
+          if (!worksheet[cellAddress]) {
+            worksheet[cellAddress] = { v: cell.value || '' };
+          }
+          worksheet[cellAddress].c = [{ t: cell.comment, a: 'Usuário' }];
+        }
+      });
+    });
+
+    const colWidths = colunasPadronizadasNames.map((col, colIndex) => {
       let maxLength = col ? col.length : 10;
-      linhasPadronizadas.forEach(row => {
-        if (row[colIndex]) {
-          const cellLength = row[colIndex].toString().length;
+      linhasPadronizadasValues.forEach(row => {
+        const val = row[colIndex]?.value;
+        if (val) {
+          const cellLength = val.toString().length;
           if (cellLength > maxLength) maxLength = cellLength;
         }
       });
@@ -388,24 +469,27 @@ export default function SheetView() {
 
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Planilha');
+
     XLSX.writeFile(workbook, fileName);
 
+    // 2. Salva na API / Banco de Dados
     try {
-      const storedUser = localStorage.getItem('user') || localStorage.getItem('user_data');
+      const storedUser = localStorage.getItem('user_data') || localStorage.getItem('user');
       const loggedUser = storedUser ? JSON.parse(storedUser) : null;
       const userId = loggedUser?._id || loggedUser?.id;
 
       if (!userId) {
-        showAlert('Atenção', 'Usuário não identificado. Faça login novamente para salvar a planilha no banco de dados.');
+        showAlert('Atenção', 'Planilha baixada, mas faça login para salvá-la no banco de dados.');
         setIsSaving(false);
         return;
       }
 
       const payload = {
         title: sheetTitle,
+        description: description, // 📌 Campo retido para explicação do gerente
         fileName: fileName,
-        columns: colunasPadronizadas,
-        rows: linhasPadronizadas,
+        columns: colunasPadronizadasNames,
+        rows: linhasPadronizadasValues,
         userId: userId
       };
 
@@ -420,39 +504,38 @@ export default function SheetView() {
       });
 
       if (response.ok) {
-        console.log('✅ Planilha salva com sucesso no MongoDB!');
+        showAlert('Sucesso! 🎉', `Planilha salva com sucesso e baixada como "${fileName}".`);
       } else {
-        const errorData = await response.json();
-        console.error('❌ Erro da API ao salvar:', errorData);
+        const errorData = await response.json().catch(() => ({}));
+        console.error('❌ Resposta de erro do servidor:', response.status, errorData);
+        showAlert('Erro ao Salvar', `Ocorreu uma falha no servidor. (Status ${response.status})`);
       }
     } catch (error) {
-      console.log('Arquivo baixado no PC, mas o servidor backend não respondeu.');
-      console.error(error);
+      console.error('❌ Erro de conexão:', error);
+      showAlert('Erro de Conexão', 'Planilha baixada, mas o servidor backend está fora do ar.');
     } finally {
       setIsSaving(false);
     }
-
-    showAlert('Sucesso! 🎉', `Tabela finalizada com sucesso! Todos os dados foram padronizados e salvos em Downloads como "${fileName}".`);
   };
 
   return (
     <div className="sheet-container">
       <div className="sheet-header">
         <div className="sheet-title-area" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <button 
-            onClick={() => navigate(-1)} 
+          <button
+            onClick={() => navigate(-1)}
             className="btn-back"
-            style={{ 
-              border: 'none', 
-              background: 'transparent', 
-              cursor: 'pointer', 
-              fontSize: '1rem', 
-              fontWeight: 'bold' 
+            style={{
+              border: 'none',
+              background: 'transparent',
+              cursor: 'pointer',
+              fontSize: '1rem',
+              fontWeight: 'bold'
             }}
           >
             ← Voltar
           </button>
-          
+
           <input
             type="text"
             value={sheetTitle}
@@ -489,7 +572,7 @@ export default function SheetView() {
             + Linha
           </button>
           <button className="btn btn-primary btn-finish" onClick={handleFinishTable} disabled={isSaving}>
-            {isSaving ? '⏳ Processando...' : '✅ Finalizar Tabela'}
+            {isSaving ? '⏳ Salvando...' : '✅ Finalizar Tabela'}
           </button>
         </div>
       </div>
@@ -501,12 +584,12 @@ export default function SheetView() {
               <tr>
                 <th className="row-number" style={{ width: '60px', textAlign: 'center' }}>#</th>
                 {columns.map((col, index) => (
-                  <th key={index} style={{ padding: '0.3rem 0.5rem' }}>
+                  <th key={col.id || index} style={{ padding: '0.3rem 0.5rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                       <input
                         type="text"
-                        value={col}
-                        onChange={(e) => handleColumnNameChange(index, e.target.value)}
+                        value={typeof col === 'object' ? col.name : col}
+                        onChange={(e) => handleColumnNameChange(col.id, e.target.value)}
                         placeholder={`Coluna ${index + 1}`}
                         style={{
                           fontWeight: 'bold',
@@ -539,8 +622,6 @@ export default function SheetView() {
                           fontSize: '0.75rem',
                           padding: '0 0.2rem'
                         }}
-                        onMouseEnter={(e) => (e.target.style.opacity = '1')}
-                        onMouseLeave={(e) => (e.target.style.opacity = '0.6')}
                       >
                         ❌
                       </button>
@@ -568,8 +649,8 @@ export default function SheetView() {
               </tr>
             ) : rows.length === 0 ? (
               <tr>
-                <td 
-                  colSpan={columns.length + 1} 
+                <td
+                  colSpan={columns.length + 1}
                   style={{ textAlign: 'center', padding: '2.5rem 1.5rem', color: '#64748b' }}
                 >
                   <p style={{ fontSize: '0.95rem', marginBottom: '1rem' }}>
@@ -582,11 +663,11 @@ export default function SheetView() {
               </tr>
             ) : (
               rows.map((row, rowIndex) => (
-                <tr key={rowIndex}>
+                <tr key={row.id || rowIndex}>
                   <td className="row-number" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.2rem', padding: '0.5rem 0.4rem' }}>
                     <span>{rowIndex + 1}</span>
                     <button
-                      onClick={() => handleRemoveRow(rowIndex)}
+                      onClick={() => handleRemoveRow(row.id)}
                       title="Excluir Linha"
                       style={{
                         border: 'none',
@@ -596,21 +677,39 @@ export default function SheetView() {
                         opacity: 0.5,
                         padding: 0
                       }}
-                      onMouseEnter={(e) => (e.target.style.opacity = '1')}
-                      onMouseLeave={(e) => (e.target.style.opacity = '0.5')}
                     >
                       🗑️
                     </button>
                   </td>
-                  {row.map((cell, colIndex) => (
-                    <td key={colIndex}>
-                      <input
-                        type="text"
-                        value={cell}
-                        placeholder="Preencha aqui..."
-                        onChange={(e) => handleCellChange(rowIndex, colIndex, e.target.value)}
-                        className="cell-input"
-                      />
+                  {row.cells.map((cell, colIndex) => (
+                    <td key={colIndex} style={{ position: 'relative' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
+                        <input
+                          type="text"
+                          value={cell.value}
+                          placeholder="Preencha aqui..."
+                          onChange={(e) => handleCellChange(row.id, colIndex, e.target.value)}
+                          className="cell-input"
+                          style={{ paddingRight: '26px' }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleOpenCommentModal(row.id, colIndex, cell.comment)}
+                          title={cell.comment ? `Comentário: ${cell.comment}` : 'Adicionar comentário'}
+                          style={{
+                            position: 'absolute',
+                            right: '6px',
+                            border: 'none',
+                            background: 'transparent',
+                            cursor: 'pointer',
+                            fontSize: '0.85rem',
+                            opacity: cell.comment ? 1 : 0.3,
+                            transition: 'opacity 0.2s ease'
+                          }}
+                        >
+                          💬
+                        </button>
+                      </div>
                     </td>
                   ))}
                 </tr>
@@ -620,143 +719,74 @@ export default function SheetView() {
         </table>
       </div>
 
-      {/* 1. MODAL DE ADICIONAR COLUNA */}
-      {isColModalOpen && (
-        <div style={{
-          position: 'fixed',
-          top: 0, left: 0, right: 0, bottom: 0,
-          backgroundColor: 'rgba(15, 23, 42, 0.55)',
-          backdropFilter: 'blur(4px)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          zIndex: 1000
-        }}>
-          <div style={{
-            backgroundColor: '#ffffff',
-            padding: '1.75rem',
-            borderRadius: '12px',
-            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+      {/* 📝 ÁREA DE EXPLICAÇÃO DA PLANILHA PARA O GERENTE */}
+      <div style={{ marginTop: '2rem', backgroundColor: '#ffffff', padding: '1.25rem', borderRadius: '10px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+        <h3 style={{ margin: '0 0 0.5rem 0', color: '#0f172a', fontSize: '1.05rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          📝 Observação / Explicação para o Gerente
+        </h3>
+        <p style={{ margin: '0 0 0.75rem 0', color: '#64748b', fontSize: '0.85rem' }}>
+          Escreva uma breve explicação ou contextualização dos dados contidos nesta planilha.
+        </p>
+        <textarea
+          rows={3}
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder="Ex: Esta planilha detalha os custos de infraestrutura do setor no mês vigente..."
+          style={{
             width: '100%',
-            maxWidth: '400px'
-          }}>
-            <h3 style={{ margin: '0 0 0.5rem 0', color: '#0f172a', fontSize: '1.25rem' }}>
-              Nova Coluna
-            </h3>
-            <p style={{ margin: '0 0 1.25rem 0', color: '#64748b', fontSize: '0.9rem' }}>
-              Digite o nome para identificar esta coluna na planilha.
-            </p>
+            padding: '0.75rem',
+            borderRadius: '8px',
+            border: '1px solid #cbd5e1',
+            outline: 'none',
+            fontSize: '0.9rem',
+            boxSizing: 'border-box',
+            resize: 'vertical',
+            fontFamily: 'inherit'
+          }}
+        />
+      </div>
 
+      {/* MODAIS */}
+      {isColModalOpen && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15, 23, 42, 0.55)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div style={{ backgroundColor: '#ffffff', padding: '1.75rem', borderRadius: '12px', width: '100%', maxWidth: '400px' }}>
+            <h3 style={{ margin: '0 0 0.5rem 0', color: '#0f172a', fontSize: '1.25rem' }}>Nova Coluna</h3>
             <form onSubmit={handleConfirmAddColumn}>
-              <input
-                type="text"
-                autoFocus
-                value={newColName}
-                onChange={(e) => setNewColName(e.target.value)}
-                placeholder={`Ex: Coluna ${columns.length + 1}`}
-                style={{
-                  width: '100%',
-                  padding: '0.65rem 0.85rem',
-                  borderRadius: '8px',
-                  border: '1px solid #cbd5e1',
-                  outline: 'none',
-                  fontSize: '0.95rem',
-                  boxSizing: 'border-box',
-                  marginBottom: '1.25rem'
-                }}
-              />
-
+              <input type="text" autoFocus value={newColName} onChange={(e) => setNewColName(e.target.value)} placeholder={`Ex: Coluna ${columns.length + 1}`} style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none', marginBottom: '1.25rem' }} />
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
-                <button
-                  type="button"
-                  onClick={() => setIsColModalOpen(false)}
-                  style={{
-                    padding: '0.5rem 1rem',
-                    borderRadius: '6px',
-                    border: '1px solid #cbd5e1',
-                    backgroundColor: '#ffffff',
-                    color: '#475569',
-                    cursor: 'pointer',
-                    fontWeight: '500'
-                  }}
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  style={{
-                    padding: '0.5rem 1rem',
-                    borderRadius: '6px',
-                    border: 'none',
-                    backgroundColor: '#2563eb',
-                    color: '#ffffff',
-                    cursor: 'pointer',
-                    fontWeight: '600'
-                  }}
-                >
-                  Criar Coluna
-                </button>
+                <button type="button" onClick={() => setIsColModalOpen(false)} style={{ padding: '0.5rem 1rem', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff', color: '#475569', cursor: 'pointer' }}>Cancelar</button>
+                <button type="submit" style={{ padding: '0.5rem 1rem', borderRadius: '6px', border: 'none', backgroundColor: '#2563eb', color: '#ffffff', cursor: 'pointer', fontWeight: '600' }}>Criar Coluna</button>
               </div>
             </form>
           </div>
         </div>
       )}
 
-      {/* 2. MODAL GERAL (ALERT / CONFIRM CUSTOMIZADO) */}
-      {modalConfig.isOpen && (
-        <div style={{
-          position: 'fixed',
-          top: 0, left: 0, right: 0, bottom: 0,
-          backgroundColor: 'rgba(15, 23, 42, 0.55)',
-          backdropFilter: 'blur(4px)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          zIndex: 1100
-        }}>
-          <div style={{
-            backgroundColor: '#ffffff',
-            padding: '1.75rem',
-            borderRadius: '12px',
-            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
-            width: '100%',
-            maxWidth: '420px'
-          }}>
-            <h3 style={{ margin: '0 0 0.5rem 0', color: '#0f172a', fontSize: '1.2rem', fontWeight: '600' }}>
-              {modalConfig.title}
-            </h3>
-            <p style={{ margin: '0 0 1.5rem 0', color: '#475569', fontSize: '0.95rem', lineHeight: '1.4' }}>
-              {modalConfig.message}
-            </p>
+      {commentModal.isOpen && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15, 23, 42, 0.55)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1050 }}>
+          <div style={{ backgroundColor: '#ffffff', padding: '1.75rem', borderRadius: '12px', width: '100%', maxWidth: '420px' }}>
+            <h3 style={{ margin: '0 0 0.5rem 0', color: '#0f172a', fontSize: '1.2rem' }}>💬 Comentário da Célula</h3>
+            <form onSubmit={handleSaveComment}>
+              <textarea autoFocus rows={4} value={commentModal.text} onChange={(e) => setCommentModal(prev => ({ ...prev, text: e.target.value }))} placeholder="Comentário..." style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none', marginBottom: '1.25rem', fontFamily: 'inherit' }} />
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+                <button type="button" onClick={() => setCommentModal({ isOpen: false, rowId: null, colIndex: null, text: '' })} style={{ padding: '0.5rem 1rem', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff', color: '#475569', cursor: 'pointer' }}>Cancelar</button>
+                <button type="submit" style={{ padding: '0.5rem 1rem', borderRadius: '6px', border: 'none', backgroundColor: '#2563eb', color: '#ffffff', cursor: 'pointer', fontWeight: '600' }}>Salvar Comentário</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
+      {modalConfig.isOpen && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15, 23, 42, 0.55)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100 }}>
+          <div style={{ backgroundColor: '#ffffff', padding: '1.75rem', borderRadius: '12px', width: '100%', maxWidth: '420px' }}>
+            <h3 style={{ margin: '0 0 0.5rem 0', color: '#0f172a', fontSize: '1.2rem' }}>{modalConfig.title}</h3>
+            <p style={{ margin: '0 0 1.5rem 0', color: '#475569', fontSize: '0.95rem' }}>{modalConfig.message}</p>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
               {modalConfig.type === 'confirm' && (
-                <button
-                  onClick={closeModal}
-                  style={{
-                    padding: '0.5rem 1rem',
-                    borderRadius: '6px',
-                    border: '1px solid #cbd5e1',
-                    backgroundColor: '#ffffff',
-                    color: '#475569',
-                    cursor: 'pointer',
-                    fontWeight: '500'
-                  }}
-                >
-                  Cancelar
-                </button>
+                <button onClick={closeModal} style={{ padding: '0.5rem 1rem', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff', color: '#475569', cursor: 'pointer' }}>Cancelar</button>
               )}
-              <button
-                onClick={() => {
-                  if (modalConfig.onConfirm) modalConfig.onConfirm();
-                  closeModal();
-                }}
-                style={{
-                  padding: '0.5rem 1rem',
-                  borderRadius: '6px',
-                  border: 'none',
-                  backgroundColor: modalConfig.type === 'confirm' ? '#dc2626' : '#2563eb',
-                  color: '#ffffff',
-                  cursor: 'pointer',
-                  fontWeight: '600'
-                }}
-              >
+              <button onClick={() => { if (modalConfig.onConfirm) modalConfig.onConfirm(); closeModal(); }} style={{ padding: '0.5rem 1rem', borderRadius: '6px', border: 'none', backgroundColor: modalConfig.type === 'confirm' ? '#dc2626' : '#2563eb', color: '#ffffff', cursor: 'pointer', fontWeight: '600' }}>
                 {modalConfig.type === 'confirm' ? 'Confirmar' : 'OK'}
               </button>
             </div>

@@ -9,7 +9,6 @@ const sheetController = {
       let filter = {};
 
       if (userId && userId !== 'undefined' && userId !== 'null') {
-        // Garante suporte tanto para String quanto para ObjectId do Mongoose
         if (mongoose.Types.ObjectId.isValid(userId)) {
           filter = { userId: new mongoose.Types.ObjectId(userId) };
         } else {
@@ -49,6 +48,31 @@ const sheetController = {
       return res.status(201).json(newSheet);
     } catch (error) {
       return res.status(400).json({ message: 'Erro ao criar planilha.', error: error.message });
+    }
+  },
+
+  // Adicionar comentário na planilha
+  addComment: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { author, text } = req.body;
+
+      if (!text || !author) {
+        return res.status(400).json({ message: 'Autor e texto são obrigatórios.' });
+      }
+
+      const sheet = await Sheet.findById(id);
+      if (!sheet) {
+        return res.status(404).json({ message: 'Planilha não encontrada.' });
+      }
+
+      sheet.comments.push({ author, text });
+      await sheet.save();
+
+      return res.status(200).json({ message: 'Comentário adicionado com sucesso!', comments: sheet.comments });
+    } catch (error) {
+      console.error('Erro ao adicionar comentário:', error);
+      return res.status(500).json({ message: 'Erro interno ao adicionar comentário.', error: error.message });
     }
   },
 
