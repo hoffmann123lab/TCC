@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import '../App.css';
+import './Navbar.css';
 
 const ALLOWED_ADMIN_EMAILS = [
   'rafaelhoffmann@gmail.com',
@@ -53,7 +53,6 @@ export default function Navbar() {
             📁 Minhas Planilhas
           </Link>
 
-          {/* Renderizado apenas para admins */}
           {isAdmin && (
             <>
               <Link to="/admin/sheets" className={isActive('/admin/sheets')}>
@@ -65,20 +64,7 @@ export default function Navbar() {
             </>
           )}
 
-          <button
-            onClick={handleLogout}
-            style={{
-              backgroundColor: '#ef4444',
-              color: '#ffffff',
-              border: 'none',
-              padding: '0.4rem 0.8rem',
-              borderRadius: '6px',
-              fontWeight: 'bold',
-              cursor: 'pointer',
-              marginLeft: '1rem',
-              fontSize: '0.85rem'
-            }}
-          >
+          <button onClick={handleLogout} className="btn-logout">
             🚪 Sair
           </button>
         </div>

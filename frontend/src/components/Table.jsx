@@ -1,4 +1,5 @@
 import React from 'react';
+import './Table.css';
 
 export default function Table({ columns, rows, onCellChange, onDeleteRow, onAddColumn }) {
   const [newColName, setNewColName] = React.useState('');
@@ -19,7 +20,7 @@ export default function Table({ columns, rows, onCellChange, onDeleteRow, onAddC
               <th key={col._id}>{col.name}</th>
             ))}
             <th className="add-col-header">
-              <form onSubmit={handleAddCol} style={{ display: 'flex', gap: '5px' }}>
+              <form onSubmit={handleAddCol} className="add-col-form">
                 <input
                   type="text"
                   placeholder="+ Nova Coluna"
@@ -34,7 +35,7 @@ export default function Table({ columns, rows, onCellChange, onDeleteRow, onAddC
         <tbody>
           {rows.length === 0 ? (
             <tr>
-              <td colSpan={columns.length + 1} style={{ textAlign: 'center', padding: '20px' }}>
+              <td colSpan={columns.length + 1} className="empty-table-msg">
                 Nenhum dado cadastrado nesta planilha.
               </td>
             </tr>
@@ -45,13 +46,14 @@ export default function Table({ columns, rows, onCellChange, onDeleteRow, onAddC
                   <td key={col._id}>
                     <input
                       type="text"
+                      className="cell-input"
                       value={row.data?.[col._id] || ''}
                       onChange={(e) => onCellChange(row._id, col._id, e.target.value)}
                     />
                   </td>
                 ))}
                 <td>
-                  <button onClick={() => onDeleteRow(row._id)} className="btn-danger-sm">
+                  <button onClick={() => onDeleteRow(row._id)} className="btn-danger-sm" title="Excluir linha">
                     🗑️
                   </button>
                 </td>
