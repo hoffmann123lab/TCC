@@ -1,0 +1,102 @@
+/* SheetComments.css */
+
+.sheet-comments-container {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+.sheet-comments-title {
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+  font-size: 1rem;
+  color: #111827;
+}
+
+/* Banner para mensagens de erro */
+.sheet-comments-error-banner {
+  padding: 0.5rem 0.75rem;
+  background-color: #fef2f2;
+  color: #991b1b;
+  border-radius: 6px;
+  border: 1px solid #fecaca;
+  margin-bottom: 0.75rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+}
+
+.sheet-comments-close-btn {
+  background: none;
+  border: none;
+  color: #991b1b;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+/* Lista de Comentários */
+.sheet-comments-list {
+  max-height: 200px;
+  overflow-y: auto;
+  margin-bottom: 1rem;
+}
+
+.sheet-comments-empty {
+  color: #6b7280;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.sheet-comment-card {
+  margin-bottom: 0.5rem;
+  padding: 0.5rem;
+  background-color: #f9fafb;
+  border-radius: 4px;
+}
+
+.sheet-comment-author {
+  color: #1f2937;
+  font-size: 0.9rem;
+}
+
+.sheet-comment-text {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #374151;
+}
+
+/* Formulário */
+.sheet-comments-form {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.sheet-comments-input {
+  flex: 1;
+  padding: 0.5rem;
+  border-radius: 4px;
+  border: 1px solid #d1d5db;
+  outline: none;
+  font-size: 0.9rem;
+}
+
+.sheet-comments-input:focus {
+  border-color: #2563eb;
+}
+
+.sheet-comments-btn-submit {
+  padding: 0.5rem 1rem;
+  background-color: #2563eb;
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.sheet-comments-btn-submit:hover {
+  background-color: #1d4ed8;
+}

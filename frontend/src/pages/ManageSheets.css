@@ -1,0 +1,350 @@
+/* ManageSheets.css */
+
+.manage-sheets-container {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  font-family: sans-serif;
+}
+
+/* Banner de Alerta / Erro */
+.manage-sheets-error-banner {
+  padding: 0.75rem 1rem;
+  background-color: #fef2f2;
+  color: #991b1b;
+  border-radius: 8px;
+  border: 1px solid #fecaca;
+  margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.manage-sheets-close-btn {
+  background: none;
+  border: none;
+  color: #991b1b;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+/* Cabeçalho da Página */
+.manage-sheets-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.manage-sheets-title {
+  margin: 0;
+  color: #0f172a;
+}
+
+.manage-sheets-subtitle {
+  color: #64748b;
+  margin-top: 0.25rem;
+}
+
+.manage-sheets-search-input {
+  padding: 0.6rem 1rem;
+  width: 320px;
+  border-radius: 6px;
+  border: 1px solid #cbd5e1;
+  outline: none;
+}
+
+/* Mensagens de Estado */
+.manage-sheets-info-text {
+  color: #64748b;
+}
+
+.manage-sheets-empty-card {
+  text-align: center;
+  padding: 3rem;
+  background-color: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.manage-sheets-empty-text {
+  font-size: 1.2rem;
+  color: #64748b;
+  margin: 0;
+}
+
+/* Grid de Pastas */
+.manage-sheets-folders-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.manage-sheets-folder-card {
+  background-color: #ffffff;
+  padding: 1.5rem;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+}
+
+.manage-sheets-folder-icon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.manage-sheets-folder-name {
+  margin: 0 0 0.5rem 0;
+  color: #1e293b;
+  font-size: 1.1rem;
+}
+
+.manage-sheets-folder-owner {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.manage-sheets-folder-email {
+  margin: 0.25rem 0 0.75rem 0;
+  font-size: 0.8rem;
+  color: #94a3b8;
+}
+
+.manage-sheets-folder-badge {
+  font-size: 0.8rem;
+  background-color: #e0f2fe;
+  color: #0369a1;
+  padding: 0.25rem 0.6rem;
+  border-radius: 12px;
+  font-weight: bold;
+}
+
+/* Painel de Conteúdo da Pasta Selecionada */
+.manage-sheets-folder-details {
+  background-color: #ffffff;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+}
+
+.manage-sheets-details-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.manage-sheets-details-title {
+  margin: 0;
+  color: #0f172a;
+}
+
+.manage-sheets-details-owner {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.manage-sheets-btn-gray {
+  background-color: #94a3b8;
+  color: #ffffff;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* Tabelas */
+.manage-sheets-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.manage-sheets-thead-tr {
+  background-color: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+  color: #475569;
+  font-size: 0.85rem;
+}
+
+.manage-sheets-th {
+  padding: 0.75rem;
+}
+
+.manage-sheets-tbody-tr {
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.manage-sheets-td-title {
+  padding: 0.75rem;
+  font-weight: bold;
+  color: #1e293b;
+}
+
+.manage-sheets-td {
+  padding: 0.75rem;
+  color: #475569;
+}
+
+.manage-sheets-td-center {
+  padding: 0.75rem;
+  text-align: center;
+}
+
+.manage-sheets-btn-blue {
+  background-color: #2563eb;
+  color: #ffffff;
+  border: none;
+  padding: 0.3rem 0.7rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+/* Modal de Visualização da Planilha */
+.manage-sheets-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.manage-sheets-modal-content {
+  background-color: #ffffff;
+  padding: 2rem;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 850px;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.manage-sheets-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 0.5rem;
+}
+
+.manage-sheets-modal-title {
+  margin: 0;
+  color: #0f172a;
+}
+
+.manage-sheets-table-wrapper {
+  overflow-x: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  margin-bottom: 1.5rem;
+}
+
+.manage-sheets-modal-thead-tr {
+  background-color: #f1f5f9;
+  border-bottom: 1px solid #cbd5e1;
+}
+
+.manage-sheets-modal-th {
+  padding: 0.75rem;
+  font-weight: bold;
+  color: #334155;
+}
+
+/* Seção de Comentários */
+.manage-sheets-comments-section {
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 1.25rem;
+}
+
+.manage-sheets-comments-title {
+  margin: 0 0 1rem 0;
+  color: #0f172a;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.manage-sheets-comments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-height: 200px;
+  overflow-y: auto;
+  margin-bottom: 1rem;
+}
+
+.manage-sheets-empty-comments {
+  margin: 0;
+  color: #94a3b8;
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
+.manage-sheets-comment-card {
+  background-color: #ffffff;
+  padding: 0.75rem;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+}
+
+.manage-sheets-comment-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.25rem;
+}
+
+.manage-sheets-comment-author {
+  font-size: 0.85rem;
+  color: #1e293b;
+}
+
+.manage-sheets-comment-date {
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+.manage-sheets-comment-text {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #334155;
+  line-height: 1.4;
+}
+
+.manage-sheets-comment-form {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.manage-sheets-comment-input {
+  flex: 1;
+  padding: 0.6rem 0.8rem;
+  border-radius: 6px;
+  border: 1px solid #cbd5e1;
+  outline: none;
+  font-size: 0.85rem;
+}
+
+.manage-sheets-btn-submit {
+  padding: 0.6rem 1rem;
+  background-color: #2563eb;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 0.85rem;
+  cursor: pointer;
+}

@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import * as XLSX from 'xlsx';
 import '../App.css';
+import './SheetView.css';
 
-// 🌐 FUNÇÃO DE PADRONIZAÇÃO E LIMPEZA
 function normalizarTexto(valor, nomeColuna = '') {
   if (valor === null || valor === undefined) return '';
 
@@ -13,7 +13,6 @@ function normalizarTexto(valor, nomeColuna = '') {
   const textoMin = texto.toLowerCase();
   const colMin = nomeColuna.toLowerCase();
 
-  // 1. DINHEIRO / VALORES (R$)
   if (colMin.includes('valor') || colMin.includes('custo') || colMin.includes('preço') || colMin.includes('preco') || colMin.includes('orcamento') || colMin.includes('orçamento') || colMin.includes('salário') || colMin.includes('salario')) {
     let limpo = texto.replace('R$', '').replace(/\s/g, '');
     if (limpo.includes(',') && limpo.includes('.')) {
@@ -27,7 +26,6 @@ function normalizarTexto(valor, nomeColuna = '') {
     }
   }
 
-  // 2. PORCENTAGEM (%)
   if (colMin.includes('%') || colMin.includes('porcentagem') || colMin.includes('taxa') || colMin.includes('desconto') || colMin.includes('juros')) {
     let limpo = texto.replace('%', '').replace(',', '.').trim();
     const numero = parseFloat(limpo);
@@ -36,7 +34,6 @@ function normalizarTexto(valor, nomeColuna = '') {
     }
   }
 
-  // 3. DATAS (DD/MM/AAAA)
   if (colMin.includes('data') || colMin.includes('prazo') || colMin.includes('nascimento') || colMin.includes('vencimento')) {
     const apenasNumeros = texto.replace(/\D/g, '');
     if (apenasNumeros.length === 8) {
@@ -44,7 +41,6 @@ function normalizarTexto(valor, nomeColuna = '') {
     }
   }
 
-  // 4. HORAS (HH:MM)
   if (colMin.includes('hora') || colMin.includes('horário') || colMin.includes('horario')) {
     const apenasNumeros = texto.replace(/\D/g, '');
     if (apenasNumeros.length === 4) {
@@ -52,7 +48,6 @@ function normalizarTexto(valor, nomeColuna = '') {
     }
   }
 
-  // 5. CPF / CNPJ / CEP
   if (colMin.includes('cpf')) {
     const num = texto.replace(/\D/g, '');
     if (num.length === 11) {
@@ -74,7 +69,6 @@ function normalizarTexto(valor, nomeColuna = '') {
     }
   }
 
-  // 6. TELEFONE / WHATSAPP
   if (colMin.includes('tel') || colMin.includes('telefone') || colMin.includes('celular') || colMin.includes('whatsapp') || colMin.includes('contato')) {
     const num = texto.replace(/\D/g, '');
     if (num.length === 11) {
@@ -84,7 +78,6 @@ function normalizarTexto(valor, nomeColuna = '') {
     }
   }
 
-  // 7. PLACAS DE VEÍCULO
   if (colMin.includes('placa') || colMin.includes('veículo') || colMin.includes('veiculo')) {
     const limpo = texto.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
     if (limpo.length === 7) {
@@ -95,7 +88,6 @@ function normalizarTexto(valor, nomeColuna = '') {
     }
   }
 
-  // 8. ESTADOS (UF)
   if (colMin.includes('uf') || colMin.includes('estado')) {
     const ufs = {
       'acre': 'AC', 'alagoas': 'AL', 'amapa': 'AP', 'amapá': 'AP', 'amazonas': 'AM',
@@ -112,20 +104,17 @@ function normalizarTexto(valor, nomeColuna = '') {
     if (texto.length === 2) return texto.toUpperCase();
   }
 
-  // 9. UNIDADES DE MEDIDA
   if (colMin.includes('peso') || colMin.includes('massa')) {
     const num = parseFloat(texto.replace(',', '.'));
     if (!isNaN(num)) return `${num} kg`;
   }
 
-  // 10. TAMANHO DE ROUPA
   if (colMin.includes('tamanho')) {
     if (['p', 'm', 'g', 'gg', 'xg', 'xxg', 'pp'].includes(textoMin)) {
       return textoMin.toUpperCase();
     }
   }
 
-  // 11. STATUS DE TAREFA / PROJETO / CRM
   if (colMin.includes('status') || colMin.includes('etapa') || colMin.includes('fase') || colMin.includes('situacao') || colMin.includes('situação')) {
     if (['fazer', 'a fazer', 'pendente', 'todo', 'aberto'].includes(textoMin)) return 'A Fazer';
     if (['fazendo', 'em andamento', 'andamento', 'execucao', 'execução', 'doing'].includes(textoMin)) return 'Em Andamento';
@@ -133,27 +122,23 @@ function normalizarTexto(valor, nomeColuna = '') {
     if (['cancelado', 'recusado', 'lost', 'perdido'].includes(textoMin)) return 'Cancelado';
   }
 
-  // 12. GÊNERO / SEXO
   if (colMin.includes('gênero') || colMin.includes('genero') || colMin.includes('sexo')) {
     if (['m', 'mas', 'masc', 'masculino'].includes(textoMin)) return 'Masculino';
     if (['f', 'fem', 'feminino'].includes(textoMin)) return 'Feminino';
     if (['outro', 'outros', 'nb', 'nao-binario', 'não-binário'].includes(textoMin)) return 'Outro';
   }
 
-  // 13. CONFIRMAÇÃO / BOOLEANOS
   if (colMin.includes('reservado') || colMin.includes('confirmado') || colMin.includes('pago') || colMin.includes('concluído') || colMin.includes('ativo')) {
     if (['s', 'sim', 'y', 'yes', 'true', 'v', 'verdadeiro', '1', 'ok'].includes(textoMin)) return 'Sim';
     if (['n', 'nao', 'não', 'no', 'false', 'f', 'falso', '0'].includes(textoMin)) return 'Não';
   }
 
-  // 14. PRIORIDADE
   if (colMin.includes('prioridade') || colMin.includes('urgência') || colMin.includes('urgencia')) {
     if (['alta', 'alto', 'urgent', 'urgente', 'max', 'máxima', '3'].includes(textoMin)) return 'Alta';
     if (['media', 'médio', 'medio', 'med', 'normal', '2'].includes(textoMin)) return 'Média';
     if (['baixa', 'baixo', 'low', 'mínima', '1'].includes(textoMin)) return 'Baixa';
   }
 
-  // 15. DIAS DA SEMANA
   if (colMin.includes('dia') || colMin.includes('semana')) {
     if (['seg', 'segunda', 'segunda-feira'].includes(textoMin)) return 'Segunda-feira';
     if (['ter', 'terca', 'terça', 'terça-feira'].includes(textoMin)) return 'Terça-feira';
@@ -164,14 +149,12 @@ function normalizarTexto(valor, nomeColuna = '') {
     if (['dom', 'domingo'].includes(textoMin)) return 'Domingo';
   }
 
-  // 16. E-MAIL
   if (colMin.includes('email') || colMin.includes('e-mail')) {
     if (texto.includes('@')) {
       return textoMin;
     }
   }
 
-  // 17. FORMATAÇÃO INTELIGENTE DE NOMES PRÓPRIOS / TEXTO GERAL
   const excecoes = ['de', 'da', 'do', 'dos', 'das', 'e'];
   return texto
     .toLowerCase()
@@ -183,7 +166,6 @@ function normalizarTexto(valor, nomeColuna = '') {
     .join(' ');
 }
 
-// TEMPLATES PRONTOS
 const TEMPLATE_DATA = {
   'temp-escola': {
     title: '🎓 Diário de Classe',
@@ -261,16 +243,14 @@ export default function SheetView() {
   const defaultTitle = location.state?.title || (activeTemplate ? activeTemplate.title : 'Nova Planilha');
 
   const [sheetTitle, setSheetTitle] = useState(defaultTitle);
-  const [description, setDescription] = useState(''); // 📝 ESTADO PARA OBSERVAÇÕES/EXPLICAÇÕES DO GERENTE
+  const [description, setDescription] = useState('');
   const [columns, setColumns] = useState(activeTemplate ? formatInitialColumns(activeTemplate.columns) : []);
   const [rows, setRows] = useState(activeTemplate ? formatInitialRows(activeTemplate.rows) : []);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Estados dos Modais
   const [isColModalOpen, setIsColModalOpen] = useState(false);
   const [newColName, setNewColName] = useState('');
 
-  // Estado para Modal de Comentário da Célula
   const [commentModal, setCommentModal] = useState({
     isOpen: false,
     rowId: null,
@@ -278,7 +258,6 @@ export default function SheetView() {
     text: ''
   });
 
-  // Estado para Alertas e Confirmações
   const [modalConfig, setModalConfig] = useState({
     isOpen: false,
     title: '',
@@ -431,7 +410,6 @@ export default function SheetView() {
       });
     });
 
-    // 1. Gera o Download .xlsx
     const rawData = [
       colunasPadronizadasNames,
       ...linhasPadronizadasValues.map(row => row.map(cell => cell.value))
@@ -472,7 +450,6 @@ export default function SheetView() {
 
     XLSX.writeFile(workbook, fileName);
 
-    // 2. Salva na API / Banco de Dados
     try {
       const storedUser = localStorage.getItem('user_data') || localStorage.getItem('user');
       const loggedUser = storedUser ? JSON.parse(storedUser) : null;
@@ -486,7 +463,7 @@ export default function SheetView() {
 
       const payload = {
         title: sheetTitle,
-        description: description, // 📌 Campo retido para explicação do gerente
+        description: description,
         fileName: fileName,
         columns: colunasPadronizadasNames,
         rows: linhasPadronizadasValues,
@@ -521,18 +498,8 @@ export default function SheetView() {
   return (
     <div className="sheet-container">
       <div className="sheet-header">
-        <div className="sheet-title-area" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <button
-            onClick={() => navigate(-1)}
-            className="btn-back"
-            style={{
-              border: 'none',
-              background: 'transparent',
-              cursor: 'pointer',
-              fontSize: '1rem',
-              fontWeight: 'bold'
-            }}
-          >
+        <div className="sheet-title-area">
+          <button onClick={() => navigate(-1)} className="btn-back">
             ← Voltar
           </button>
 
@@ -541,26 +508,7 @@ export default function SheetView() {
             value={sheetTitle}
             onChange={(e) => setSheetTitle(e.target.value)}
             placeholder="Nome da planilha..."
-            style={{
-              fontSize: '1.4rem',
-              fontWeight: 'bold',
-              color: '#0f172a',
-              border: '1px solid transparent',
-              borderRadius: '6px',
-              padding: '0.3rem 0.6rem',
-              backgroundColor: '#f8fafc',
-              outline: 'none',
-              transition: 'all 0.2s ease',
-              minWidth: '250px'
-            }}
-            onFocus={(e) => {
-              e.target.style.backgroundColor = '#ffffff';
-              e.target.style.borderColor = '#2563eb';
-            }}
-            onBlur={(e) => {
-              e.target.style.backgroundColor = '#f8fafc';
-              e.target.style.borderColor = 'transparent';
-            }}
+            className="sheet-title-input"
           />
         </div>
 
@@ -571,7 +519,7 @@ export default function SheetView() {
           <button className="btn btn-secondary" onClick={handleAddRow}>
             + Linha
           </button>
-          <button className="btn btn-primary btn-finish" onClick={handleFinishTable} disabled={isSaving}>
+          <button className="btn btn-primary" onClick={handleFinishTable} disabled={isSaving}>
             {isSaving ? '⏳ Salvando...' : '✅ Finalizar Tabela'}
           </button>
         </div>
@@ -582,46 +530,21 @@ export default function SheetView() {
           {columns.length > 0 && (
             <thead>
               <tr>
-                <th className="row-number" style={{ width: '60px', textAlign: 'center' }}>#</th>
+                <th className="row-number">#</th>
                 {columns.map((col, index) => (
-                  <th key={col.id || index} style={{ padding: '0.3rem 0.5rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                  <th key={col.id || index}>
+                    <div className="column-header-container">
                       <input
                         type="text"
                         value={typeof col === 'object' ? col.name : col}
                         onChange={(e) => handleColumnNameChange(col.id, e.target.value)}
                         placeholder={`Coluna ${index + 1}`}
-                        style={{
-                          fontWeight: 'bold',
-                          border: '1px solid transparent',
-                          backgroundColor: 'transparent',
-                          width: '100%',
-                          outline: 'none',
-                          fontSize: '0.9rem',
-                          color: '#0f172a',
-                          padding: '0.2rem 0.4rem',
-                          borderRadius: '4px'
-                        }}
-                        onFocus={(e) => {
-                          e.target.style.backgroundColor = '#ffffff';
-                          e.target.style.borderColor = '#2563eb';
-                        }}
-                        onBlur={(e) => {
-                          e.target.style.backgroundColor = 'transparent';
-                          e.target.style.borderColor = 'transparent';
-                        }}
+                        className="column-header-input"
                       />
                       <button
                         onClick={() => handleRemoveColumn(index)}
                         title="Excluir Coluna"
-                        style={{
-                          border: 'none',
-                          background: 'none',
-                          cursor: 'pointer',
-                          opacity: 0.6,
-                          fontSize: '0.75rem',
-                          padding: '0 0.2rem'
-                        }}
+                        className="btn-icon"
                       >
                         ❌
                       </button>
@@ -635,11 +558,11 @@ export default function SheetView() {
           <tbody>
             {columns.length === 0 ? (
               <tr>
-                <td style={{ textAlign: 'center', padding: '3.5rem 1.5rem', color: '#64748b' }}>
-                  <p style={{ fontSize: '1.1rem', fontWeight: '600', marginBottom: '0.5rem', color: '#1e293b' }}>
+                <td className="empty-state">
+                  <p className="empty-state-title">
                     Esta planilha está totalmente vazia.
                   </p>
-                  <p style={{ fontSize: '0.9rem', marginBottom: '1.5rem' }}>
+                  <p className="description-text">
                     Comece criando a sua primeira coluna!
                   </p>
                   <button className="btn btn-primary" onClick={handleAddColumn}>
@@ -649,11 +572,8 @@ export default function SheetView() {
               </tr>
             ) : rows.length === 0 ? (
               <tr>
-                <td
-                  colSpan={columns.length + 1}
-                  style={{ textAlign: 'center', padding: '2.5rem 1.5rem', color: '#64748b' }}
-                >
-                  <p style={{ fontSize: '0.95rem', marginBottom: '1rem' }}>
+                <td colSpan={columns.length + 1} className="empty-state">
+                  <p className="description-text">
                     Suas colunas já foram criadas! Agora adicione a primeira linha.
                   </p>
                   <button className="btn btn-primary" onClick={handleAddRow}>
@@ -664,48 +584,32 @@ export default function SheetView() {
             ) : (
               rows.map((row, rowIndex) => (
                 <tr key={row.id || rowIndex}>
-                  <td className="row-number" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.2rem', padding: '0.5rem 0.4rem' }}>
+                  <td className="row-number">
                     <span>{rowIndex + 1}</span>
                     <button
                       onClick={() => handleRemoveRow(row.id)}
                       title="Excluir Linha"
-                      style={{
-                        border: 'none',
-                        background: 'none',
-                        cursor: 'pointer',
-                        fontSize: '0.75rem',
-                        opacity: 0.5,
-                        padding: 0
-                      }}
+                      className="btn-icon"
                     >
                       🗑️
                     </button>
                   </td>
                   {row.cells.map((cell, colIndex) => (
-                    <td key={colIndex} style={{ position: 'relative' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
+                    <td key={colIndex}>
+                      <div className="cell-container">
                         <input
                           type="text"
                           value={cell.value}
                           placeholder="Preencha aqui..."
                           onChange={(e) => handleCellChange(row.id, colIndex, e.target.value)}
                           className="cell-input"
-                          style={{ paddingRight: '26px' }}
                         />
                         <button
                           type="button"
                           onClick={() => handleOpenCommentModal(row.id, colIndex, cell.comment)}
                           title={cell.comment ? `Comentário: ${cell.comment}` : 'Adicionar comentário'}
-                          style={{
-                            position: 'absolute',
-                            right: '6px',
-                            border: 'none',
-                            background: 'transparent',
-                            cursor: 'pointer',
-                            fontSize: '0.85rem',
-                            opacity: cell.comment ? 1 : 0.3,
-                            transition: 'opacity 0.2s ease'
-                          }}
+                          className="btn-comment"
+                          style={{ opacity: cell.comment ? 1 : 0.3 }}
                         >
                           💬
                         </button>
@@ -719,12 +623,11 @@ export default function SheetView() {
         </table>
       </div>
 
-      {/* 📝 ÁREA DE EXPLICAÇÃO DA PLANILHA PARA O GERENTE */}
-      <div style={{ marginTop: '2rem', backgroundColor: '#ffffff', padding: '1.25rem', borderRadius: '10px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-        <h3 style={{ margin: '0 0 0.5rem 0', color: '#0f172a', fontSize: '1.05rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+      <div className="description-section">
+        <h3 className="description-title">
           📝 Observação / Explicação para o Gerente
         </h3>
-        <p style={{ margin: '0 0 0.75rem 0', color: '#64748b', fontSize: '0.85rem' }}>
+        <p className="description-text">
           Escreva uma breve explicação ou contextualização dos dados contidos nesta planilha.
         </p>
         <textarea
@@ -732,30 +635,30 @@ export default function SheetView() {
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Ex: Esta planilha detalha os custos de infraestrutura do setor no mês vigente..."
-          style={{
-            width: '100%',
-            padding: '0.75rem',
-            borderRadius: '8px',
-            border: '1px solid #cbd5e1',
-            outline: 'none',
-            fontSize: '0.9rem',
-            boxSizing: 'border-box',
-            resize: 'vertical',
-            fontFamily: 'inherit'
-          }}
+          className="description-textarea"
         />
       </div>
 
-      {/* MODAIS */}
       {isColModalOpen && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15, 23, 42, 0.55)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div style={{ backgroundColor: '#ffffff', padding: '1.75rem', borderRadius: '12px', width: '100%', maxWidth: '400px' }}>
-            <h3 style={{ margin: '0 0 0.5rem 0', color: '#0f172a', fontSize: '1.25rem' }}>Nova Coluna</h3>
+        <div className="modal-overlay">
+          <div className="modal-card">
+            <h3 className="modal-title">Nova Coluna</h3>
             <form onSubmit={handleConfirmAddColumn}>
-              <input type="text" autoFocus value={newColName} onChange={(e) => setNewColName(e.target.value)} placeholder={`Ex: Coluna ${columns.length + 1}`} style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none', marginBottom: '1.25rem' }} />
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
-                <button type="button" onClick={() => setIsColModalOpen(false)} style={{ padding: '0.5rem 1rem', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff', color: '#475569', cursor: 'pointer' }}>Cancelar</button>
-                <button type="submit" style={{ padding: '0.5rem 1rem', borderRadius: '6px', border: 'none', backgroundColor: '#2563eb', color: '#ffffff', cursor: 'pointer', fontWeight: '600' }}>Criar Coluna</button>
+              <input
+                type="text"
+                autoFocus
+                value={newColName}
+                onChange={(e) => setNewColName(e.target.value)}
+                placeholder={`Ex: Coluna ${columns.length + 1}`}
+                className="modal-input"
+              />
+              <div className="modal-actions">
+                <button type="button" className="btn btn-secondary" onClick={() => setIsColModalOpen(false)}>
+                  Cancelar
+                </button>
+                <button type="submit" className="btn btn-primary">
+                  Criar Coluna
+                </button>
               </div>
             </form>
           </div>
@@ -763,14 +666,29 @@ export default function SheetView() {
       )}
 
       {commentModal.isOpen && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15, 23, 42, 0.55)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1050 }}>
-          <div style={{ backgroundColor: '#ffffff', padding: '1.75rem', borderRadius: '12px', width: '100%', maxWidth: '420px' }}>
-            <h3 style={{ margin: '0 0 0.5rem 0', color: '#0f172a', fontSize: '1.2rem' }}>💬 Comentário da Célula</h3>
+        <div className="modal-overlay">
+          <div className="modal-card">
+            <h3 className="modal-title">💬 Comentário da Célula</h3>
             <form onSubmit={handleSaveComment}>
-              <textarea autoFocus rows={4} value={commentModal.text} onChange={(e) => setCommentModal(prev => ({ ...prev, text: e.target.value }))} placeholder="Comentário..." style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none', marginBottom: '1.25rem', fontFamily: 'inherit' }} />
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
-                <button type="button" onClick={() => setCommentModal({ isOpen: false, rowId: null, colIndex: null, text: '' })} style={{ padding: '0.5rem 1rem', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff', color: '#475569', cursor: 'pointer' }}>Cancelar</button>
-                <button type="submit" style={{ padding: '0.5rem 1rem', borderRadius: '6px', border: 'none', backgroundColor: '#2563eb', color: '#ffffff', cursor: 'pointer', fontWeight: '600' }}>Salvar Comentário</button>
+              <textarea
+                autoFocus
+                rows={4}
+                value={commentModal.text}
+                onChange={(e) => setCommentModal(prev => ({ ...prev, text: e.target.value }))}
+                placeholder="Comentário..."
+                className="modal-input"
+              />
+              <div className="modal-actions">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setCommentModal({ isOpen: false, rowId: null, colIndex: null, text: '' })}
+                >
+                  Cancelar
+                </button>
+                <button type="submit" className="btn btn-primary">
+                  Salvar Comentário
+                </button>
               </div>
             </form>
           </div>
@@ -778,15 +696,23 @@ export default function SheetView() {
       )}
 
       {modalConfig.isOpen && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15, 23, 42, 0.55)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100 }}>
-          <div style={{ backgroundColor: '#ffffff', padding: '1.75rem', borderRadius: '12px', width: '100%', maxWidth: '420px' }}>
-            <h3 style={{ margin: '0 0 0.5rem 0', color: '#0f172a', fontSize: '1.2rem' }}>{modalConfig.title}</h3>
-            <p style={{ margin: '0 0 1.5rem 0', color: '#475569', fontSize: '0.95rem' }}>{modalConfig.message}</p>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+        <div className="modal-overlay">
+          <div className="modal-card">
+            <h3 className="modal-title">{modalConfig.title}</h3>
+            <p className="description-text">{modalConfig.message}</p>
+            <div className="modal-actions">
               {modalConfig.type === 'confirm' && (
-                <button onClick={closeModal} style={{ padding: '0.5rem 1rem', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff', color: '#475569', cursor: 'pointer' }}>Cancelar</button>
+                <button className="btn btn-secondary" onClick={closeModal}>
+                  Cancelar
+                </button>
               )}
-              <button onClick={() => { if (modalConfig.onConfirm) modalConfig.onConfirm(); closeModal(); }} style={{ padding: '0.5rem 1rem', borderRadius: '6px', border: 'none', backgroundColor: modalConfig.type === 'confirm' ? '#dc2626' : '#2563eb', color: '#ffffff', cursor: 'pointer', fontWeight: '600' }}>
+              <button
+                className={`btn ${modalConfig.type === 'confirm' ? 'btn-danger' : 'btn-primary'}`}
+                onClick={() => {
+                  if (modalConfig.onConfirm) modalConfig.onConfirm();
+                  closeModal();
+                }}
+              >
                 {modalConfig.type === 'confirm' ? 'Confirmar' : 'OK'}
               </button>
             </div>

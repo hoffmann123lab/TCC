@@ -1,5 +1,6 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import './Navbar.css';
+import logoImg from '../assets/logo.png'; // 👈 Caminho correto para src/assets/logo.png
 
 const ALLOWED_ADMIN_EMAILS = [
   'rafaelhoffmann@gmail.com',
@@ -37,35 +38,36 @@ export default function Navbar() {
     <nav className="navbar">
       <div className="navbar-container">
         <Link to="/dashboard" className="navbar-brand">
+          <img src={logoImg} alt="Logo SheetHub" className="navbar-logo" />
           <span>SheetHub</span>
         </Link>
 
         <div className="navbar-links">
           <Link to="/dashboard" className={isActive('/dashboard')}>
-            🏠 Dashboard
+             Dashboard
           </Link>
 
           <Link to="/templates" className={isActive('/templates')}>
-            ✨ Modelos
+             Modelos
           </Link>
 
           <Link to="/sheets" className={isActive('/sheets')}>
-            📁 Minhas Planilhas
+             Minhas Planilhas
           </Link>
 
           {isAdmin && (
             <>
               <Link to="/admin/sheets" className={isActive('/admin/sheets')}>
-                ⚙️ Gerenciar Planilhas
+                 Gerenciar Planilhas
               </Link>
               <Link to="/admin/users" className={isActive('/admin/users')}>
-                👥 Gerenciar Usuários
+                 Gerenciar Usuários
               </Link>
             </>
           )}
 
           <button onClick={handleLogout} className="btn-logout">
-            🚪 Sair
+             Sair
           </button>
         </div>
       </div>

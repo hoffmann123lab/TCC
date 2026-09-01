@@ -6,16 +6,17 @@
   position: sticky;
   top: 0;
   z-index: 100;
-  background-color: #1e293b;
+  background-color: #e1ecfe; /* Cor exata da imagem */
   padding: 0 1.5rem;
   width: 100%;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid #c8dcfa; /* Borda leve para definição */
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.05);
   box-sizing: border-box;
 }
 
 .navbar-container {
   max-width: 1200px;
-  height: 64px;
+  height: 80px;
   margin: 0 auto;
   display: flex;
   align-items: center;
@@ -27,7 +28,7 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  color: #ffffff;
+  color: #1d3557;
   font-size: 1.25rem;
   font-weight: 700;
   text-decoration: none;
@@ -35,11 +36,11 @@
 }
 
 .navbar-brand:hover {
-  color: #38bdf8;
+  color: #2563eb;
 }
 
 .navbar-logo {
-  height: 36px;
+  height: 38px;
   width: auto;
   object-fit: contain;
 }
@@ -48,30 +49,36 @@
 .navbar-links {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
+/* Itens da Navbar e o Quadrado Azul */
 .nav-link {
-  color: #94a3b8;
+  color: #3b5998;
   text-decoration: none;
-  font-weight: 500;
+  font-weight: 600;
   font-size: 0.9rem;
-  padding: 0.5rem 0.9rem;
-  border-radius: 8px;
+  
+  /* Tamanho e espaçamento do quadrado */
+  padding: 0.85rem 1.6rem; 
+  border-radius: 10px;
+  
   transition: all 0.2s ease-in-out;
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.5rem;
 }
 
 .nav-link:hover {
-  color: #ffffff;
-  background-color: #334155;
+  color: #2563eb;
+  background-color: #d2e3fc;
 }
 
+/* Quadrado Ativo (Azul em destaque) */
 .nav-link.active {
   color: #ffffff;
-  background-color: #0284c7;
+  background-color: #2563eb;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
 }
 
 /* Botão de Logout */
@@ -79,23 +86,41 @@
   background-color: #ef4444;
   color: #ffffff;
   border: none;
-  padding: 0.4rem 0.8rem;
-  border-radius: 6px;
-  font-weight: 700;
-  font-size: 0.85rem;
+  padding: 0.75rem 1.3rem;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.875rem;
   cursor: pointer;
   margin-left: 1rem;
-  transition: background-color 0.2s ease, transform 0.1s ease;
+  transition: all 0.2s ease;
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
+  gap: 0.4rem;
 }
 
 .btn-logout:hover {
   background-color: #dc2626;
   transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(239, 68, 68, 0.25);
 }
 
 .btn-logout:active {
   transform: translateY(0);
+}
+/* Alinha a imagem e a escrita na mesma linha */
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem; /* Espaçamento entre a logo e o texto */
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: #1d3557;
+}
+
+/* Dimensionamento da imagem da logo */
+.navbar-logo {
+  height: 32px; /* Ajuste a altura conforme a preferência */
+  width: auto;
+  object-fit: contain;
 }

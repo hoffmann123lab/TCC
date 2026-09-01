@@ -1,0 +1,131 @@
+.templates-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.template-card {
+  background-color: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.template-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.card-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.card-title {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #0f172a;
+}
+
+.template-tag {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.template-description {
+  color: #64748b;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  margin: 0 0 1.25rem 0;
+}
+
+.template-preview-cols {
+  background-color: #f8fafc;
+  padding: 0.75rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+}
+
+.template-preview-cols strong {
+  color: #334155;
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.template-preview-cols p {
+  margin: 0;
+  color: #64748b;
+  word-break: break-word;
+}
+
+.btn-use-template {
+  width: 100%;
+  margin-top: 1.25rem;
+}
+.template-card-featured {
+  border: 2px solid #2563eb;
+  position: relative;
+  background-color: #f8fafc;
+}
+
+.featured-badge {
+  position: absolute;
+  top: -12px;
+  right: 16px;
+  background-color: #2563eb;
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: bold;
+  padding: 0.2rem 0.6rem;
+  border-radius: 12px;
+  text-transform: uppercase;
+}
+
+/* Cor da categoria Estoque */
+.card-icon[data-category="Estoque"] { background-color: rgba(37, 99, 235, 0.15); }
+.template-tag[data-category="Estoque"] { color: #2563eb; }
+
+/* Utilitários de cores baseados em data-attributes */
+.card-icon[data-category="Escola"] { background-color: rgba(245, 158, 11, 0.15); }
+.template-tag[data-category="Escola"] { color: #d97706; }
+
+.card-icon[data-category="Finanças"] { background-color: rgba(16, 185, 129, 0.15); }
+.template-tag[data-category="Finanças"] { color: #059669; }
+
+.card-icon[data-category="Trabalho"] { background-color: rgba(79, 70, 229, 0.15); }
+.template-tag[data-category="Trabalho"] { color: #4f46e5; }
+
+.card-icon[data-category="Saúde"] { background-color: rgba(239, 68, 68, 0.15); }
+.template-tag[data-category="Saúde"] { color: #dc2626; }
+
+.card-icon[data-category="Viagens"] { background-color: rgba(6, 182, 212, 0.15); }
+.template-tag[data-category="Viagens"] { color: #0891b2; }
+
+.card-icon[data-category="Eventos"] { background-color: rgba(236, 72, 153, 0.15); }
+.template-tag[data-category="Eventos"] { color: #db2777; }
+
+.card-icon[data-category="Vendas"] { background-color: rgba(139, 92, 246, 0.15); }
+.template-tag[data-category="Vendas"] { color: #7c3aed; }
+
+.card-icon[data-category="Pessoal"] { background-color: rgba(132, 204, 22, 0.15); }
+.template-tag[data-category="Pessoal"] { color: #65a30d; }

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import './ManageSheets.css';
 
 const ALLOWED_ADMIN_EMAILS = [
   'rafaelhoffmann@gmail.com',
@@ -16,7 +17,7 @@ export default function ManageSheets() {
   // Estado para substituir alerts bloqueantes
   const [errorMessage, setErrorMessage] = useState('');
 
-  // 🟢 ESTADOS PARA A GESTÃO DE COMENTÁRIOS
+  // ESTADOS PARA A GESTÃO DE COMENTÁRIOS
   const [comments, setComments] = useState([]);
   const [newCommentText, setNewCommentText] = useState('');
   const [isSendingComment, setIsSendingComment] = useState(false);
@@ -72,14 +73,14 @@ export default function ManageSheets() {
     fetchFolders();
   }, [navigate]);
 
-  // 🟢 QUANDO O ADM ABRE UMA PLANILHA, CARREGA OS COMENTÁRIOS EXISTENTES
+  // QUANDO O ADM ABRE UMA PLANILHA, CARREGA OS COMENTÁRIOS EXISTENTES
   const handleOpenSheet = (sheet) => {
     setSelectedSheet(sheet);
     setComments(sheet.comments || []);
     setNewCommentText('');
   };
 
-  // 🟢 FUNÇÃO PARA O ADMINISTRADOR ENVIAR UM COMENTÁRIO
+  // FUNÇÃO PARA O ADMINISTRADOR ENVIAR UM COMENTÁRIO
   const handleSendComment = async (e) => {
     e.preventDefault();
     if (!newCommentText.trim() || !selectedSheet) return;
@@ -132,35 +133,25 @@ export default function ManageSheets() {
   );
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto', fontFamily: 'sans-serif' }}>
+    <div className="manage-sheets-container">
       
       {/* Banner de erro/aviso no topo */}
       {errorMessage && (
-        <div style={{
-          padding: '0.75rem 1rem',
-          backgroundColor: '#fef2f2',
-          color: '#991b1b',
-          borderRadius: '8px',
-          border: '1px solid #fecaca',
-          marginBottom: '1.5rem',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center'
-        }}>
+        <div className="manage-sheets-error-banner">
           <span>⚠️ {errorMessage}</span>
           <button 
             onClick={() => setErrorMessage('')}
-            style={{ background: 'none', border: 'none', color: '#991b1b', cursor: 'pointer', fontWeight: 'bold' }}
+            className="manage-sheets-close-btn"
           >
             ✕
           </button>
         </div>
       )}
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+      <div className="manage-sheets-header">
         <div>
-          <h1 style={{ margin: 0, color: '#0f172a' }}>📁 Pastas dos Utilizadores</h1>
-          <p style={{ color: '#64748b', marginTop: '0.25rem' }}>
+          <h1 className="manage-sheets-title"> Pastas dos Utilizadores</h1>
+          <p className="manage-sheets-subtitle">
             Painel do Administrador: Gerencie as pastas criadas pelos usuários.
           </p>
         </div>
@@ -170,39 +161,32 @@ export default function ManageSheets() {
           placeholder="🔍 Buscar por pasta, criador ou e-mail..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          style={{ padding: '0.6rem 1rem', width: '320px', borderRadius: '6px', border: '1px solid #cbd5e1', outline: 'none' }}
+          className="manage-sheets-search-input"
         />
       </div>
 
       {loading ? (
-        <p style={{ color: '#64748b' }}>A carregar pastas do banco de dados...</p>
+        <p className="manage-sheets-info-text">A carregar pastas do banco de dados...</p>
       ) : userFolders.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '3rem', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-          <p style={{ fontSize: '1.2rem', color: '#64748b', margin: 0 }}>Nenhuma pasta foi encontrada.</p>
+        <div className="manage-sheets-empty-card">
+          <p className="manage-sheets-empty-text">Nenhuma pasta foi encontrada.</p>
         </div>
       ) : (
         <>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
+          <div className="manage-sheets-folders-grid">
             {filteredFolders.map((folder) => (
               <div
                 key={folder.id || folder._id}
                 onClick={() => setSelectedFolder(folder)}
-                style={{
-                  backgroundColor: '#fff',
-                  padding: '1.5rem',
-                  borderRadius: '10px',
-                  border: '1px solid #e2e8f0',
-                  boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
-                  cursor: 'pointer'
-                }}
+                className="manage-sheets-folder-card"
               >
-                <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📁</div>
-                <h3 style={{ margin: '0 0 0.5rem 0', color: '#1e293b', fontSize: '1.1rem' }}>{folder.folderName}</h3>
-                <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748b' }}>
+                <div className="manage-sheets-folder-icon">📁</div>
+                <h3 className="manage-sheets-folder-name">{folder.folderName}</h3>
+                <p className="manage-sheets-folder-owner">
                   Criador: <strong>{folder.owner}</strong>
                 </p>
-                <p style={{ margin: '0.25rem 0 0.75rem 0', fontSize: '0.8rem', color: '#94a3b8' }}>{folder.email}</p>
-                <span style={{ fontSize: '0.8rem', backgroundColor: '#e0f2fe', color: '#0369a1', padding: '0.25rem 0.6rem', borderRadius: '12px', fontWeight: 'bold' }}>
+                <p className="manage-sheets-folder-email">{folder.email}</p>
+                <span className="manage-sheets-folder-badge">
                   {folder.sheets?.length || 0} {folder.sheets?.length === 1 ? 'planilha' : 'planilhas'}
                 </span>
               </div>
@@ -210,35 +194,35 @@ export default function ManageSheets() {
           </div>
 
           {selectedFolder && (
-            <div style={{ backgroundColor: '#fff', padding: '1.5rem', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <div className="manage-sheets-folder-details">
+              <div className="manage-sheets-details-header">
                 <div>
-                  <h2 style={{ margin: 0, color: '#0f172a' }}>📂 Pasta: {selectedFolder.folderName}</h2>
-                  <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748b' }}>Proprietário: {selectedFolder.owner} ({selectedFolder.email})</p>
+                  <h2 className="manage-sheets-details-title">📂 Pasta: {selectedFolder.folderName}</h2>
+                  <p className="manage-sheets-details-owner">Proprietário: {selectedFolder.owner} ({selectedFolder.email})</p>
                 </div>
-                <button onClick={() => setSelectedFolder(null)} style={{ backgroundColor: '#94a3b8', color: '#fff', border: 'none', padding: '0.4rem 0.8rem', borderRadius: '4px', cursor: 'pointer' }}>
+                <button onClick={() => setSelectedFolder(null)} className="manage-sheets-btn-gray">
                   ✕ Fechar
                 </button>
               </div>
 
               {selectedFolder.sheets?.length === 0 ? (
-                <p style={{ color: '#94a3b8' }}>Esta pasta está vazia.</p>
+                <p className="manage-sheets-info-text">Esta pasta está vazia.</p>
               ) : (
-                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                <table className="manage-sheets-table">
                   <thead>
-                    <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#475569', fontSize: '0.85rem' }}>
-                      <th style={{ padding: '0.75rem' }}>NOME DA PLANILHA</th>
-                      <th style={{ padding: '0.75rem' }}>LINHAS</th>
-                      <th style={{ padding: '0.75rem', textAlign: 'center' }}>AÇÃO</th>
+                    <tr className="manage-sheets-thead-tr">
+                      <th className="manage-sheets-th">NOME DA PLANILHA</th>
+                      <th className="manage-sheets-th">LINHAS</th>
+                      <th className="manage-sheets-th manage-sheets-td-center">AÇÃO</th>
                     </tr>
                   </thead>
                   <tbody>
                     {selectedFolder.sheets?.map((sheet, index) => (
-                      <tr key={index} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                        <td style={{ padding: '0.75rem', fontWeight: 'bold', color: '#1e293b' }}>📊 {sheet.title}</td>
-                        <td style={{ padding: '0.75rem', color: '#475569' }}>{sheet.rows?.length || 0}</td>
-                        <td style={{ padding: '0.75rem', textAlign: 'center' }}>
-                          <button onClick={() => handleOpenSheet(sheet)} style={{ backgroundColor: '#2563eb', color: '#fff', border: 'none', padding: '0.3rem 0.7rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' }}>
+                      <tr key={index} className="manage-sheets-tbody-tr">
+                        <td className="manage-sheets-td-title"> {sheet.title}</td>
+                        <td className="manage-sheets-td">{sheet.rows?.length || 0}</td>
+                        <td className="manage-sheets-td-center">
+                          <button onClick={() => handleOpenSheet(sheet)} className="manage-sheets-btn-blue">
                             👁️ Abrir Planilha
                           </button>
                         </td>
@@ -254,22 +238,22 @@ export default function ManageSheets() {
 
       {/* MODAL DE VISUALIZAÇÃO DA PLANILHA COM ÁREA DE COMENTÁRIOS */}
       {selectedSheet && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
-          <div style={{ backgroundColor: '#fff', padding: '2rem', borderRadius: '8px', width: '90%', maxWidth: '850px', maxHeight: '85vh', overflowY: 'auto' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.5rem' }}>
-              <h2 style={{ margin: 0, color: '#0f172a' }}>📌 {selectedSheet.title}</h2>
-              <button onClick={() => setSelectedSheet(null)} style={{ backgroundColor: '#94a3b8', color: '#fff', border: 'none', padding: '0.4rem 0.8rem', borderRadius: '4px', cursor: 'pointer' }}>
+        <div className="manage-sheets-modal-overlay">
+          <div className="manage-sheets-modal-content">
+            <div className="manage-sheets-modal-header">
+              <h2 className="manage-sheets-modal-title"> {selectedSheet.title}</h2>
+              <button onClick={() => setSelectedSheet(null)} className="manage-sheets-btn-gray">
                 ✕ Fechar
               </button>
             </div>
 
             {/* TABELA DA PLANILHA */}
-            <div style={{ overflowX: 'auto', border: '1px solid #e2e8f0', borderRadius: '6px', marginBottom: '1.5rem' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+            <div className="manage-sheets-table-wrapper">
+              <table className="manage-sheets-table">
                 <thead>
-                  <tr style={{ backgroundColor: '#f1f5f9', borderBottom: '1px solid #cbd5e1' }}>
+                  <tr className="manage-sheets-modal-thead-tr">
                     {selectedSheet.columns?.map((col, index) => (
-                      <th key={index} style={{ padding: '0.75rem', fontWeight: 'bold', color: '#334155' }}>
+                      <th key={index} className="manage-sheets-modal-th">
                         {typeof col === 'object' ? col.name : col}
                       </th>
                     ))}
@@ -277,21 +261,21 @@ export default function ManageSheets() {
                 </thead>
                 <tbody>
                   {selectedSheet.rows?.map((row, rowIndex) => (
-                    <tr key={rowIndex} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                    <tr key={rowIndex} className="manage-sheets-tbody-tr">
                       {Array.isArray(row) ? (
                         row.map((cell, cellIndex) => (
-                          <td key={cellIndex} style={{ padding: '0.75rem', color: '#475569' }}>
+                          <td key={cellIndex} className="manage-sheets-td">
                             {typeof cell === 'object' ? JSON.stringify(cell) : cell}
                           </td>
                         ))
                       ) : typeof row === 'object' ? (
                         Object.values(row).map((cell, cellIndex) => (
-                          <td key={cellIndex} style={{ padding: '0.75rem', color: '#475569' }}>
+                          <td key={cellIndex} className="manage-sheets-td">
                             {typeof cell === 'object' ? JSON.stringify(cell) : cell}
                           </td>
                         ))
                       ) : (
-                        <td style={{ padding: '0.75rem', color: '#475569' }}>{row}</td>
+                        <td className="manage-sheets-td">{row}</td>
                       )}
                     </tr>
                   ))}
@@ -299,30 +283,30 @@ export default function ManageSheets() {
               </table>
             </div>
 
-            {/* 💬 SEÇÃO DE COMENTÁRIOS DO ADMINISTRADOR */}
-            <div style={{ backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '1.25rem' }}>
-              <h3 style={{ margin: '0 0 1rem 0', color: '#0f172a', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                💬 Comentários e Observações do Administrador
+            {/* SEÇÃO DE COMENTÁRIOS DO ADMINISTRADOR */}
+            <div className="manage-sheets-comments-section">
+              <h3 className="manage-sheets-comments-title">
+                 Comentários e Observações do Administrador
               </h3>
 
               {/* LISTA DE COMENTÁRIOS */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxHeight: '200px', overflowY: 'auto', marginBottom: '1rem' }}>
+              <div className="manage-sheets-comments-list">
                 {comments.length === 0 ? (
-                  <p style={{ margin: 0, color: '#94a3b8', fontSize: '0.85rem', fontStyle: 'italic' }}>
+                  <p className="manage-sheets-empty-comments">
                     Nenhum comentário registrado nesta planilha ainda.
                   </p>
                 ) : (
                   comments.map((comment, index) => (
-                    <div key={index} style={{ backgroundColor: '#ffffff', padding: '0.75rem', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
-                        <strong style={{ fontSize: '0.85rem', color: '#1e293b' }}>{comment.author}</strong>
+                    <div key={index} className="manage-sheets-comment-card">
+                      <div className="manage-sheets-comment-header">
+                        <strong className="manage-sheets-comment-author">{comment.author}</strong>
                         {comment.createdAt && (
-                          <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                          <span className="manage-sheets-comment-date">
                             {new Date(comment.createdAt).toLocaleDateString('pt-BR')} às {new Date(comment.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                           </span>
                         )}
                       </div>
-                      <p style={{ margin: 0, fontSize: '0.85rem', color: '#334155', lineHeight: '1.4' }}>
+                      <p className="manage-sheets-comment-text">
                         {comment.text}
                       </p>
                     </div>
@@ -331,34 +315,18 @@ export default function ManageSheets() {
               </div>
 
               {/* FORMULÁRIO PARA ENVIAR COMENTÁRIO */}
-              <form onSubmit={handleSendComment} style={{ display: 'flex', gap: '0.5rem' }}>
+              <form onSubmit={handleSendComment} className="manage-sheets-comment-form">
                 <input
                   type="text"
                   placeholder="Escreva uma observação ou instrução para este usuário..."
                   value={newCommentText}
                   onChange={(e) => setNewCommentText(e.target.value)}
-                  style={{
-                    flex: 1,
-                    padding: '0.6rem 0.8rem',
-                    borderRadius: '6px',
-                    border: '1px solid #cbd5e1',
-                    outline: 'none',
-                    fontSize: '0.85rem'
-                  }}
+                  className="manage-sheets-comment-input"
                 />
                 <button
                   type="submit"
                   disabled={isSendingComment}
-                  style={{
-                    padding: '0.6rem 1rem',
-                    backgroundColor: '#2563eb',
-                    color: '#ffffff',
-                    border: 'none',
-                    borderRadius: '6px',
-                    fontWeight: 'bold',
-                    fontSize: '0.85rem',
-                    cursor: 'pointer'
-                  }}
+                  className="manage-sheets-btn-submit"
                 >
                   {isSendingComment ? 'Enviando...' : 'Comentar'}
                 </button>

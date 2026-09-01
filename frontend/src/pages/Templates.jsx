@@ -1,11 +1,20 @@
-import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../App.css';
+import './Templates.css';
 
 export default function Templates() {
   const navigate = useNavigate();
 
   const templatesList = [
+    {
+      id: 'temp-estoque',
+      title: 'Gestão de Estoque & Validade',
+      category: 'Estoque',
+      icon: '📦',
+      featured: true,
+      description: 'Acompanhe produtos, quantidades e prazos de início e fim para ter controle total do seu inventário.',
+      columns: ['Produto', 'Quantidade', 'Data Início', 'Data Fim']
+    },
     {
       id: 'temp-escola',
       title: 'Diário de Classe',
@@ -85,32 +94,35 @@ export default function Templates() {
         </div>
       </div>
 
-      <div className="grid-cards">
+      <div className="templates-grid">
         {templatesList.map((template) => (
-          <div key={template.id} className="card">
+          <div
+            key={template.id}
+            className={`template-card ${template.featured ? 'template-card-featured' : ''}`}
+          >
+            {template.featured && <span className="featured-badge">⭐ Destaque</span>}
             <div className="card-content-top">
               <div className="card-header">
-                <div className="card-icon" style={{ backgroundColor: getCategoryColor(template.category) }}>
+                <div className="card-icon" data-category={template.category}>
                   {template.icon}
                 </div>
                 <div>
                   <h3 className="card-title">{template.title}</h3>
-                  <span className="template-tag" style={{ color: getCategoryColor(template.category) }}>
+                  <span className="template-tag" data-category={template.category}>
                     {template.category}
                   </span>
                 </div>
               </div>
               <p className="template-description">{template.description}</p>
-              
+
               <div className="template-preview-cols">
                 <strong>Colunas incluídas:</strong>
                 <p>{template.columns.join(' • ')}</p>
               </div>
             </div>
 
-            <button 
-              className="btn btn-primary" 
-              style={{ width: '100%', marginTop: '1rem' }}
+            <button
+              className="btn btn-primary btn-use-template"
               onClick={() => handleUseTemplate(template.id)}
             >
               Usar este modelo
@@ -121,18 +133,3 @@ export default function Templates() {
     </div>
   );
 }
-
-// Cores temáticas por categoria
-const getCategoryColor = (cat) => {
-  switch (cat) {
-    case 'Escola': return '#f59e0b';
-    case 'Finanças': return '#10b981';
-    case 'Trabalho': return '#4f46e5';
-    case 'Saúde': return '#ef4444';
-    case 'Viagens': return '#06b6d4';
-    case 'Eventos': return '#ec4899';
-    case 'Vendas': return '#8b5cf6';
-    case 'Pessoal': return '#84cc16';
-    default: return '#64748b';
-  }
-};

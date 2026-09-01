@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import '../App.css';
+import './Dashboard.css';
 
 export default function Dashboard() {
   const [sheetsCount, setSheetsCount] = useState(0);
@@ -44,69 +44,31 @@ export default function Dashboard() {
   ];
 
   return (
-    <div className="container" style={{ padding: '2rem 1rem', maxWidth: '1200px', margin: '0 auto', fontFamily: 'sans-serif' }}>
+    <div className="dashboard-container">
       
       {/* Banner de Boas-Vindas */}
-      <div style={{
-        backgroundColor: '#1e293b',
-        color: '#ffffff',
-        padding: '2rem',
-        borderRadius: '12px',
-        marginBottom: '2rem',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        flexWrap: 'wrap',
-        gap: '1rem',
-        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)'
-      }}>
+      <div className="welcome-banner">
         <div>
-          <h1 style={{ margin: 0, fontSize: '1.8rem', fontWeight: '700' }}>Bem-vindo ao SheetHub! 👋</h1>
-          <p style={{ margin: '0.5rem 0 0', color: '#94a3b8', fontSize: '0.95rem' }}>
+          <h1 className="welcome-title">Bem-vindo ao SheetHub! </h1>
+          <p className="welcome-subtitle">
             Crie, padronize e exporte suas planilhas com facilidade.
           </p>
         </div>
-        <Link 
-          to="/sheet/new" 
-          style={{ 
-            padding: '0.75rem 1.5rem', 
-            fontWeight: 'bold', 
-            backgroundColor: '#2563eb', 
-            color: '#ffffff', 
-            borderRadius: '8px', 
-            textDecoration: 'none',
-            display: 'inline-block',
-            boxShadow: '0 2px 4px rgba(37, 99, 235, 0.2)'
-          }}
-        >
+        <Link to="/sheet/new" className="btn-primary">
           + Criar Nova Planilha
         </Link>
       </div>
 
       {/* Cards de Estatísticas */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-        gap: '1.5rem',
-        marginBottom: '2.5rem'
-      }}>
+      <div className="stats-grid">
         {stats.map((stat, index) => (
-          <div key={index} style={{
-            backgroundColor: '#ffffff',
-            padding: '1.5rem',
-            borderRadius: '12px',
-            border: '1px solid #e2e8f0',
-            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.02)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '1rem'
-          }}>
-            <div style={{ fontSize: '1.8rem', backgroundColor: '#f1f5f9', padding: '0.75rem', borderRadius: '10px' }}>
+          <div key={index} className="stat-card">
+            <div className="stat-icon">
               {stat.icon}
             </div>
             <div>
-              <span style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.025em' }}>{stat.label}</span>
-              <h2 style={{ margin: '0.2rem 0 0 0', fontSize: '1.75rem', color: '#0f172a', fontWeight: '700' }}>
+              <span className="stat-label">{stat.label}</span>
+              <h2 className="stat-value">
                 {loading ? '...' : stat.value}
               </h2>
             </div>
@@ -115,46 +77,34 @@ export default function Dashboard() {
       </div>
 
       {/* Recentes e Atalhos */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
-        <div style={{ backgroundColor: '#ffffff', padding: '1.5rem', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-            <h3 style={{ margin: 0, color: '#0f172a', fontSize: '1.2rem', fontWeight: '700' }}>📄 Planilhas Recentes</h3>
-            <Link to="/sheets" style={{ color: '#2563eb', textDecoration: 'none', fontSize: '0.875rem', fontWeight: '600' }}>Ver todas →</Link>
+      <div className="sections-grid">
+        <div className="dashboard-card">
+          <div className="card-header">
+            <h3 className="card-title"> Planilhas Recentes</h3>
+            <Link to="/sheets" className="card-link">Ver todas →</Link>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          <div className="items-list">
             {loading ? (
-              <p style={{ color: '#94a3b8', fontSize: '0.9rem', margin: 0 }}>Carregando...</p>
+              <p className="loading-text">Carregando...</p>
             ) : recentSheets.length === 0 ? (
-              <p style={{ color: '#94a3b8', fontSize: '0.9rem', margin: 0 }}>Nenhuma planilha criada ainda.</p>
+              <p className="empty-text">Nenhuma planilha criada ainda.</p>
             ) : (
               recentSheets.map((sheet, idx) => (
-                <Link key={sheet._id || idx} to={`/sheet/${sheet._id}`} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.85rem 1rem', backgroundColor: '#f8fafc', border: '1px solid #f1f5f9', borderRadius: '8px', textDecoration: 'none', color: '#334155', transition: 'background-color 0.2s' }}>
-                  <span style={{ fontWeight: '500', fontSize: '0.95rem' }}>{sheet.title || 'Sem título'}</span>
-                  <span style={{ color: '#2563eb', fontWeight: 'bold' }}>→</span>
+                <Link key={sheet._id || idx} to={`/sheet/${sheet._id}`} className="sheet-item">
+                  <span className="sheet-item-title">{sheet.title || 'Sem título'}</span>
+                  <span className="sheet-item-arrow">→</span>
                 </Link>
               ))
             )}
           </div>
         </div>
 
-        <div style={{ backgroundColor: '#ffffff', padding: '1.5rem', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
-          <h3 style={{ margin: '0 0 0.5rem', color: '#0f172a', fontSize: '1.2rem', fontWeight: '700' }}>✨ Atalhos Rápidos</h3>
-          <p style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: '1.5rem' }}>Acesse os modelos prontos para agilizar seu trabalho:</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            <Link 
-              to="/templates" 
-              style={{ 
-                textAlign: 'center', 
-                backgroundColor: '#f1f5f9', 
-                color: '#1e293b', 
-                padding: '0.75rem 1rem', 
-                borderRadius: '8px', 
-                textDecoration: 'none', 
-                fontWeight: '600',
-                fontSize: '0.95rem'
-              }}
-            >
-              📊 Ver Todos os Modelos ({templatesCount})
+        <div className="dashboard-card">
+          <h3 className="card-title-with-subtitle"> Atalhos Rápidos</h3>
+          <p className="card-subtitle">Acesse os modelos prontos para agilizar seu trabalho:</p>
+          <div className="items-list">
+            <Link to="/templates" className="btn-secondary">
+               Ver Todos os Modelos ({templatesCount})
             </Link>
           </div>
         </div>

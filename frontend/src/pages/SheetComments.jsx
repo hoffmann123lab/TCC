@@ -1,14 +1,18 @@
 import React, { useState } from 'react';
+import './SheetComments.css';
 
 const API_BASE_URL = 'http://localhost:5000';
 
 export default function SheetComments({ sheetId, initialComments = [], isAdmin }) {
   const [comments, setComments] = useState(initialComments);
   const [newComment, setNewComment] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleAddComment = async (e) => {
     e.preventDefault();
     if (!newComment.trim()) return;
+
+    setErrorMessage('');
 
     const storedData = localStorage.getItem('user_data') || localStorage.getItem('user');
     const parsedData = storedData ? JSON.parse(storedData) : {};
@@ -29,42 +33,53 @@ export default function SheetComments({ sheetId, initialComments = [], isAdmin }
         setComments(data.comments);
         setNewComment('');
       } else {
-        alert(data.message || 'Erro ao enviar comentário.');
+        setErrorMessage(data.message || 'Erro ao enviar comentário.');
       }
     } catch (error) {
       console.error('Erro ao comentar:', error);
+      setErrorMessage('Erro de conexão ao enviar o comentário.');
     }
   };
 
   return (
-    <div style={{ marginTop: '1.5rem', padding: '1rem', border: '1px solid #e5e7eb', borderRadius: '8px' }}>
-      <h4>💬 Comentários</h4>
+    <div className="sheet-comments-container">
+      <h4 className="sheet-comments-title">💬 Comentários</h4>
 
-      <div style={{ maxHeight: '200px', overflowY: 'auto', marginBottom: '1rem' }}>
+      {errorMessage && (
+        <div className="sheet-comments-error-banner">
+          <span>⚠️ {errorMessage}</span>
+          <button 
+            onClick={() => setErrorMessage('')} 
+            className="sheet-comments-close-btn"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
+      <div className="sheet-comments-list">
         {comments.length === 0 ? (
-          <p style={{ color: '#6b7280', fontSize: '0.9rem' }}>Nenhum comentário ainda.</p>
+          <p className="sheet-comments-empty">Nenhum comentário ainda.</p>
         ) : (
           comments.map((c, index) => (
-            <div key={index} style={{ marginBottom: '0.5rem', padding: '0.5rem', backgroundColor: '#f9fafb', borderRadius: '4px' }}>
-              <strong>{c.author}:</strong> <p style={{ margin: 0, fontSize: '0.9rem' }}>{c.text}</p>
+            <div key={index} className="sheet-comment-card">
+              <strong className="sheet-comment-author">{c.author}:</strong>{' '}
+              <p className="sheet-comment-text">{c.text}</p>
             </div>
           ))
         )}
       </div>
 
       {isAdmin && (
-        <form onSubmit={handleAddComment} style={{ display: 'flex', gap: '0.5rem' }}>
+        <form onSubmit={handleAddComment} className="sheet-comments-form">
           <input
             type="text"
             placeholder="Escreva um comentário para o usuário..."
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
-            style={{ flex: 1, padding: '0.5rem', borderRadius: '4px', border: '1px solid #d1d5db' }}
+            className="sheet-comments-input"
           />
-          <button
-            type="submit"
-            style={{ padding: '0.5rem 1rem', backgroundColor: '#2563eb', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-          >
+          <button type="submit" className="sheet-comments-btn-submit">
             Enviar
           </button>
         </form>

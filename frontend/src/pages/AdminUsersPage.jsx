@@ -112,7 +112,7 @@ export default function AdminUsersPage() {
   return (
     <div className="admin-users-container">
       <div className="admin-header">
-        <h1 className="admin-header-title">👥 Gerenciamento de Usuários</h1>
+        <h1 className="admin-header-title"> Gerenciamento de Usuários</h1>
         <p className="admin-header-subtitle">
           Controle permissões, acessos e ações administrativas dos usuários cadastrados.
         </p>
