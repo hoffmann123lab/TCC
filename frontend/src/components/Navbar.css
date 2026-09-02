@@ -2,125 +2,115 @@
    ESTILOS DA NAVBAR (Navbar.css)
    ========================================== */
 
-.navbar {
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  background-color: #e1ecfe; /* Cor exata da imagem */
-  padding: 0 1.5rem;
-  width: 100%;
-  border-bottom: 1px solid #c8dcfa; /* Borda leve para definição */
-  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.05);
-  box-sizing: border-box;
-}
-
-.navbar-container {
-  max-width: 1200px;
-  height: 80px;
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-/* Marca / Logo */
-.navbar-brand {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  color: #1d3557;
-  font-size: 1.25rem;
-  font-weight: 700;
-  text-decoration: none;
-  transition: color 0.2s ease;
-}
-
-.navbar-brand:hover {
-  color: #2563eb;
-}
-
-.navbar-logo {
-  height: 38px;
-  width: auto;
-  object-fit: contain;
-}
-
-/* Links da Navbar */
-.navbar-links {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-/* Itens da Navbar e o Quadrado Azul */
-.nav-link {
-  color: #3b5998;
-  text-decoration: none;
-  font-weight: 600;
-  font-size: 0.9rem;
+   .navbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background-color: #e1ecfe;
+    padding: 0 1.5rem;
+    width: 100%;
+    border-bottom: 1px solid #c8dcfa;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.05);
+    box-sizing: border-box;
+    height: 75px; /* Altura ajustada para destacar os botões maiores */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
   
-  /* Tamanho e espaçamento do quadrado */
-  padding: 0.85rem 1.6rem; 
-  border-radius: 10px;
+  .navbar-container {
+    max-width: 1200px;
+    width: 100%;
+    height: 100%;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start !important;
+    gap: 4rem; /* Aumentado para 4rem para afastar o SheetHub dos links */
+  }
   
-  transition: all 0.2s ease-in-out;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.nav-link:hover {
-  color: #2563eb;
-  background-color: #d2e3fc;
-}
-
-/* Quadrado Ativo (Azul em destaque) */
-.nav-link.active {
-  color: #ffffff;
-  background-color: #2563eb;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
-}
-
-/* Botão de Logout */
-.btn-logout {
-  background-color: #ef4444;
-  color: #ffffff;
-  border: none;
-  padding: 0.75rem 1.3rem;
-  border-radius: 10px;
-  font-weight: 600;
-  font-size: 0.875rem;
-  cursor: pointer;
-  margin-left: 1rem;
-  transition: all 0.2s ease;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-
-.btn-logout:hover {
-  background-color: #dc2626;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 10px rgba(239, 68, 68, 0.25);
-}
-
-.btn-logout:active {
-  transform: translateY(0);
-}
-/* Alinha a imagem e a escrita na mesma linha */
-.navbar-brand {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem; /* Espaçamento entre a logo e o texto */
-  text-decoration: none;
-  font-weight: 700;
-  font-size: 1.25rem;
-  color: #1d3557;
-}
-
-/* Dimensionamento da imagem da logo */
-.navbar-logo {
-  height: 32px; /* Ajuste a altura conforme a preferência */
-  width: auto;
-  object-fit: contain;
-}
+  /* Marca / Logo */
+  .navbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: #1d3557;
+    font-size: 1.3rem; /* Nome ligeiramente maior */
+    font-weight: 700;
+    text-decoration: none;
+    transition: color 0.2s ease;
+    white-space: nowrap;
+  }
+  
+  .navbar-brand:hover {
+    color: #2563eb;
+  }
+  
+  .navbar-logo {
+    height: 32px; /* Logo maior para acompanhar a escrita */
+    width: auto;
+    object-fit: contain;
+  }
+  
+  /* Links da Navbar */
+  .navbar-links {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem; /* Espaço entre cada botão */
+    width: 100%;
+  }
+  
+  /* Itens da Navbar (Botões maiores) */
+  .nav-link {
+    color: #3b5998;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.95rem; /* Fonte maior */
+    padding: 0.65rem 1.2rem; /* Espaçamento interno maior (botões mais encorpados) */
+    border-radius: 8px;
+    transition: all 0.2s ease-in-out;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+  }
+  
+  .nav-link:hover {
+    color: #2563eb;
+    background-color: #d2e3fc;
+  }
+  
+  /* Quadrado Ativo */
+  .nav-link.active {
+    color: #ffffff;
+    background-color: #2563eb;
+    box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
+  }
+  
+  /* Botão de Logout */
+  .btn-logout {
+    background-color: #ef4444;
+    color: #ffffff;
+    border: none;
+    padding: 0.65rem 1.2rem; /* Acompanha o tamanho dos outros botões */
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    margin-left: auto; /* Mantém o "Sair" encostado no canto direito */
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    white-space: nowrap;
+  }
+  
+  .btn-logout:hover {
+    background-color: #dc2626;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(239, 68, 68, 0.25);
+  }
+  
+  .btn-logout:active {
+    transform: translateY(0);
+  }

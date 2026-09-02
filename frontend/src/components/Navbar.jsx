@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import './Navbar.css';
-import logoImg from '../assets/logo.png'; // 👈 Caminho correto para src/assets/logo.png
+import logoImg from '../assets/logo.png';
 
 const ALLOWED_ADMIN_EMAILS = [
   'rafaelhoffmann@gmail.com',
@@ -38,7 +38,6 @@ export default function Navbar() {
     <nav className="navbar">
       <div className="navbar-container">
         <Link to="/dashboard" className="navbar-brand">
-          <img src={logoImg} alt="Logo SheetHub" className="navbar-logo" />
           <span>SheetHub</span>
         </Link>
 

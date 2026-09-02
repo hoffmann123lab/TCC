@@ -4,7 +4,7 @@ import './Dashboard.css';
 
 export default function Dashboard() {
   const [sheetsCount, setSheetsCount] = useState(0);
-  const [templatesCount] = useState(8);
+  const [templatesCount] = useState(9);
   const [downloadsCount, setDownloadsCount] = useState(0);
   const [recentSheets, setRecentSheets] = useState([]);
   const [loading, setLoading] = useState(true);

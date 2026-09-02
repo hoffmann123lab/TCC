@@ -214,9 +214,10 @@
   font-family: inherit;
 }
 
+/* QUADRADO AUMENTADO */
 .empty-state {
   text-align: center;
-  padding: 3.5rem 1.5rem;
+  padding: 6rem 1.5rem; /* Aumentado o padding vertical de 3.5rem para 6rem */
   color: #64748b;
 }
 

@@ -520,7 +520,7 @@ export default function SheetView() {
             + Linha
           </button>
           <button className="btn btn-primary" onClick={handleFinishTable} disabled={isSaving}>
-            {isSaving ? '⏳ Salvando...' : '✅ Finalizar Tabela'}
+            {isSaving ? ' Salvando...' : ' Finalizar Tabela'}
           </button>
         </div>
       </div>
@@ -625,7 +625,7 @@ export default function SheetView() {
 
       <div className="description-section">
         <h3 className="description-title">
-          📝 Observação / Explicação para o Gerente
+           Observação / Explicação para o Gerente
         </h3>
         <p className="description-text">
           Escreva uma breve explicação ou contextualização dos dados contidos nesta planilha.
